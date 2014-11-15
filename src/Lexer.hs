@@ -8,37 +8,40 @@ data Token = Name     String
            | Rest     String
            | LP  | RP   | LB  | RB   | COMMA | SEMICOLON
            | FOR | FROM | TO  | STEP | IS  | ERROR
-           | ADD | SUB  | MUL |  DIV | POWER
+           | ADD | SUB  | MUL |  DIV | POWER | Unknown String
            deriving (Show, Eq)
 
-iRESERVED = [
-    (IS,     "is"),
-    (TO,     "to"),
-    (FOR,    "for"),
-    (FROM,   "from"),
-    (STEP,   "step"),
-    (LP,     "("),
-    (RP,     ")"),
-    (LB,     "{"),
-    (RB,     "}"),
-    (COMMA,  ","),
-    (ADD,    "+"),
-    (SUB,    "-"),
-    (MUL,    "*"),
-    (DIV,    "/"),
-    (SEMICOLON, ";")] :: [(Token, String)]
- 
-searchTable :: String -> [(Token, String)] -> Token
-searchTable _    []      = ERROR     
-searchTable name (x:xs)  = if name == snd x 
-                               then fst x
-                               else searchTable name xs
+reserved = [
+    ("=",    IS),
+    ("is",   IS),
+    ("for",  FOR),
+    ("from", FROM),
+    ("to",   TO),
+    ("step", STEP),
+    ("(",    LP),
+    (")",    RP),
+    ("{",    LB),
+    ("}",    RB),
+    (",",    COMMA),
+    ("+",    ADD),
+    ("-",    SUB),
+    ("*",    MUL),
+    ("/",    DIV),
+    (";",    SEMICOLON)]
+
+lookupReserved :: String -> Maybe Token
+lookupReserved name = lookup name reserved
+
+detectSymbol :: Char -> Token
+detectSymbol char = detectLiteral [char] Unknown
 
 detectName :: String -> Token
-detectName name = let rev = searchTable name iRESERVED
-                  in if rev == ERROR
-                         then Name name
-                         else rev
+detectName name = detectLiteral name Name
+
+detectLiteral :: String -> (String -> Token) -> Token
+detectLiteral name tkcons = case lookupReserved name of
+                      Just tk -> tk
+                      Nothing -> tkcons name 
 
 readNumber :: String -> String -> (Token, String)
 readNumber [] num = (Real (read.reverse$num :: Float), []) 
@@ -72,4 +75,4 @@ lexme src@(curr:remains)
     | isAlpha curr =
         let (name, remains) = readName src ""
         in  name : lexme remains
-    | otherwise    = (searchTable [curr] iRESERVED) : lexme remains 
+    | otherwise    = (detectSymbol curr) : lexme remains 
