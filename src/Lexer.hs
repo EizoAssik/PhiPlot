@@ -1,4 +1,4 @@
-module Lexer (Token, lexme) where
+module Lexer (Token(..), lexme) where
 
 import Data.Char
 
