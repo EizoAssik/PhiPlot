@@ -7,17 +7,17 @@ data Token = Name     String
            | Operator String 
            | Rest     String
            | LP  | RP   | LB  | RB   | COMMA | SEMICOLON
-           | FOR | FROM | TO  | STEP | IS  | ERROR
+           | FOR | FROM | TO  | STEP | IS  | ERROR | EOF
            | ADD | SUB  | MUL |  DIV | POWER | Unknown String
            deriving (Show, Eq)
 
 reserved = [
     ("=",    IS),
-    ("is",   IS),
-    ("for",  FOR),
-    ("from", FROM),
-    ("to",   TO),
-    ("step", STEP),
+    ("IS",   IS),
+    ("FOR",  FOR),
+    ("FROM", FROM),
+    ("TO",   TO),
+    ("STEP", STEP),
     ("(",    LP),
     (")",    RP),
     ("{",    LB),
