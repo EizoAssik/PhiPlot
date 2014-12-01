@@ -4,8 +4,6 @@ import Data.Char
 
 data Token = Name     String
            | Real     Float
-           | Operator String 
-           | Rest     String
            | LP  | RP   | LB  | RB   | COMMA | SEMICOLON
            | FOR | FROM | TO  | STEP | IS  | ERROR | EOF
            | ADD | SUB  | MUL |  DIV | POWER | Unknown String
@@ -13,6 +11,11 @@ data Token = Name     String
 
 reserved = [
     ("=",    IS),
+    ("is",   IS),
+    ("for",  FOR),
+    ("from", FROM),
+    ("to",   TO),
+    ("step", STEP),
     ("IS",   IS),
     ("FOR",  FOR),
     ("FROM", FROM),
