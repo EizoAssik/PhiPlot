@@ -2,6 +2,7 @@ module Lexer (Token(..), lexme) where
 
 import Data.Char
 
+-- ERROR 用于在语法分析阶段标记错误
 data Token = Name     String
            | Real     Float
            | LP  | RP   | LB  | RB   | COMMA | SEMICOLON
@@ -77,5 +78,5 @@ lexme src@(curr:remains)
         in  num : lexme remains
     | isAlpha curr =
         let (name, remains) = readName src ""
-        in  name : lexme remains
+        in  name : (lexme remains)
     | otherwise    = (detectSymbol curr) : lexme remains 
