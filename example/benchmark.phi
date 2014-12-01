@@ -5,4 +5,4 @@ rot is PI/4;
 scale is (2, 3);
 origin is (200, 200);
 
-FOR T FROM 0 TO PI*20000 STEP PI/600 DRAW (SIN(T)+x, COS(T)+y);
+for t from 0 to PI*20000 step PI/600 draw (sin(t)+x, cos(t)+y);
