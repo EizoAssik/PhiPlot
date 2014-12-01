@@ -1,6 +1,7 @@
 module Main where
 
-import Lexer
+import Lexer ( lexme )
+import Data.Char ( toLower )
 import System.Environment ( getArgs )
 
 main = do
