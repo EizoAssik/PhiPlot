@@ -64,6 +64,12 @@ parse_factor (SUB:rs) =
         Error tk rs er -> Error tk rs ("Error in parsing negative factor: " ++ er)
 parse_factor tks = parse_power tks
 
+-- BinOP recursive parser
+-- 双操作数表达式串的通用递归分析器
+-- 目前用于解析term序列、expr序列和PhiList
+-- constructor Expr的构造子
+-- functor 扫描函数
+-- test 操作符判定
 brp constructor functor test tks = 
     case functor tks of
         succ@(Success tl []) -> succ
@@ -94,12 +100,10 @@ brp_constructor constructor ((lr, lop):(rr, rop):s) =
         Success ritem r = rr
         next = ((Success (constructor lop litem ritem) r), rop):s
     in  brp_constructor constructor next
-                                       
+-- BRP 结束                                       
 
 parse_term tks = brp (\op l r -> BinOp op l r) parse_factor (\x-> x==MUL || x==DIV) tks
-
 parse_expr tks = brp (\op l r -> BinOp op l r) parse_term (\x-> x==ADD || x==SUB) tks
-
 parse_list tks = brp (\op l r -> PhiList l r) parse_expr (\x -> x==COMMA) tks
 
 parse_for rs = Success (For (Imm 42)(Elem $ Imm 42)(Elem $ Imm 42)(Elem $ Imm 42) []) rs
