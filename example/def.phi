@@ -5,7 +5,7 @@ def tan (x) {
 def max(x, y) {
     if x>y then {
         retval = x + y;
-        return retval
+        return retval;
     } else
         return y
 }
