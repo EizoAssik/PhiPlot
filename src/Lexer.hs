@@ -1,14 +1,7 @@
 module Lexer (Token(..), lexme) where
 
-import Data.Char
-
--- ERROR 用于在语法分析阶段标记错误
-data Token = Name     String
-           | Real     Float
-           | LP  | RP   | LB  | RB   | COMMA | SEMICOLON
-           | FOR | FROM | TO  | STEP | IS  | ERROR | EOF
-           | ADD | SUB  | MUL |  DIV | POWER | Unknown String
-           deriving (Show, Eq)
+import Structure
+import Data.Char hiding ( format )
 
 reserved = [
     ("=",    IS),

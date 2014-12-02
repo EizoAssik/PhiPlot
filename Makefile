@@ -1,12 +1,13 @@
 vpath %.hs src
+vpath %.hs test
 
 GHC=ghc
 LIBGMP=/usr/local/lib
 
-parser: Lexer.hs Parser.hs test/TParser.hs
+parser: Structure.hs Lexer.hs Parser.hs test/TParser.hs test/TCommon.hs
 	$(GHC) -o $@ -L$(LIBGMP) $^ 
 
-lexer: Lexer.hs test/TLexer.hs
+lexer: Structure.hs Lexer.hs test/TLexer.hs test/TCommon.hs
 	$(GHC) -o $@ -L$(LIBGMP) $^ 
 
 clean:

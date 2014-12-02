@@ -3,6 +3,7 @@ module Main where
 import Lexer
 import Parser
 import System.Environment ( getArgs )
+import TCommon ( printListLn, format_ast )
 
 main = do
     args <- getArgs
@@ -10,6 +11,7 @@ main = do
     srcs <- readFile fn
     let tokens = lexme srcs
     let ast = parse tokens 
-    print ast
+    let fast = format_ast ast
+    printListLn fast
 
 
