@@ -1,6 +1,6 @@
-if x > 3 then
-    3
-elif x > 2 then
+if x > 3 then {
+    42
+} elif x > 2 or x < -2 then
     2
 else
     0
