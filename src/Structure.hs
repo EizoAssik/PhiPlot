@@ -16,6 +16,7 @@ data Token = Name     String
            | IF  | ELSE | ELIF | THEN
            | AND | OR   | NOT
            | EQ  | NE   | LE   | GE   | GT    | LT
+           | DEF | RETURN
            deriving (Show, Eq)
 
 data Atom = Not      Expr
@@ -29,6 +30,7 @@ data Atom = Not      Expr
 
 data Expr = Elem    Atom
           | PhiList Expr  Expr
+          | ArgList Expr  Expr
           | BinOp   Token Expr Expr
           | Logic   Token Expr Expr
           | Skip
@@ -36,8 +38,10 @@ data Expr = Elem    Atom
 
 data Stmt = Direct   Atom
           | ExprEval Expr
+          | Return   Expr
           | Set      Atom Expr
           | Block    Stmt Stmt
+          | Def      Atom Expr Stmt
           | If       Expr Stmt Stmt
           | For      Atom Expr Expr Expr Stmt
           | NOP
@@ -60,7 +64,7 @@ class ParseFlow f where
 -- 尝试匹配组合
     (|+?>)  :: f a -> (f a -> f b) -> f b
 -- 通用类型转换
-    wrap    :: f a -> f b
+    wrap    :: f a -> String -> f b
 
 instance ParseFlow ParseResult where
     m |->  g = case m of
@@ -76,18 +80,18 @@ instance ParseFlow ParseResult where
                        if x == t
                            then Success p xs
                            else Error x xs ("Cannot match token: " ++ (show t))
-                   err@(Error _ _ _) -> wrap err
+                   err@(Error _ _ _) -> wrap err $ "When using |=?> " ++ show t
 
     m |=?>> t = case m of
                     succ@(Success p xs@(x:s)) ->
                         if x == t
                             then Success p s
                             else Success p xs
-                    err@(Error _ _ _) -> wrap err
+                    err@(Error _ _ _) -> wrap err $ "When using |=?>> " ++ show t
 
     m |+?> g = case m of
                    succ@(Success p (x:xs)) -> g m
-                   err@(Error x s i) -> wrap err
+                   err@(Error x s i) -> wrap err "When using |+?>"
 
-    wrap m = case m of
-                 Error x s i  -> Error x s i
+    wrap m a = case m of
+                 Error x s i  -> Error x s (i ++ "\n\t\t>> " ++ a)

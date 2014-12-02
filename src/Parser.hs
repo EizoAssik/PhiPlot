@@ -21,7 +21,7 @@ parse_atom tks@(LP:rs) =
         succ@(Success expr (RP:xs)) ->
             Success (Subexpr expr) xs
         err@(Error c s info) -> Error c s info
-parse_atom (tk:rs) = Error tk rs ("Token: " ++ show tk ++ " is not an atom")
+parse_atom (tk:rs) = Error tk rs ("Token " ++ show tk ++ " is not an atom.")
 parse_atom [] = Success Void []
 
 
@@ -59,7 +59,7 @@ brp constructor functor test tks =
             if test xs
                 then brp_inner constructor functor test [(succ, x)] s
                 else succ
-        err@(Error _ _ _) -> err
+        err@(Error _ _ _) -> wrap err "When using BRP"
 
 brp_inner constructor functor test stack []  =
     brp_constructor constructor $ reverse stack
@@ -93,9 +93,11 @@ tk_is_cmp (Structure.LE:_) = True
 tk_is_cmp (Structure.GE:_) = True 
 tk_is_cmp _ = False
 
+
 parse_term tks = brp (\op l r -> BinOp op l r) parse_factor (\(x:s)->x==MUL || x==DIV) tks
 parse_expr tks = brp (\op l r -> BinOp op l r) parse_term   (\(x:s)->x==ADD || x==SUB) tks
 parse_list tks = brp (\op l r -> PhiList l r)  parse_expr   (\(x:s)->x==COMMA) tks
+parse_args tks = brp (\op l r -> ArgList l r)  parse_expr   (\(x:s)->x==COMMA) tks |=?> RP
 parse_cmp  tks = brp (\op l r -> BinOp op l r) parse_expr   tk_is_cmp tks
 parse_and  tks = brp (\op l r -> BinOp op l r) parse_cmp    (\(x:_)->x==AND) tks
 parse_logic tks = 
@@ -149,7 +151,7 @@ parse_set tks =
         atom = parse_atom tks
         base = case atom of
                    Success a rs -> Success (Set a Skip) rs
-                   err          -> wrap err
+                   err          -> wrap err "When constructing set stmt's left-value"
     in base |=?> IS |-> feed_expr                                  
 
 if_feed_block last (LB:xs) =
@@ -158,7 +160,7 @@ if_feed_block last (LB:xs) =
             case last of
                 If c NOP NOP -> Success (If c block NOP) rs
                 If c t   NOP -> Success (If c t   block) rs
-        err -> wrap err 
+        err -> wrap err "When parsing block for IF stmt's body"
 
 if_feed_block last (ELIF:xs) =
     case parse_if xs of
@@ -166,36 +168,57 @@ if_feed_block last (ELIF:xs) =
             case last of
                 If c NOP NOP -> Success (If c stmt  NOP) rs
                 If c t   NOP -> Success (If c t    stmt) rs
-        err -> wrap err 
+        err -> wrap err "When parsing stmt for IF stmt's else-case"
 
 if_feed_block last (ELSE:xs) = if_feed_block last xs
 
 if_feed_block last xs =
-    case parse_expr xs of
-        Success expr rs ->
+    case parse_stmt xs of
+        Success stmt rs ->
             case last of
-                If c NOP NOP -> Success (If c (ExprEval expr) NOP) rs
-                If c t   NOP -> Success (If c t   (ExprEval expr)) rs
-        err -> wrap err 
+                If c NOP NOP -> Success (If c stmt NOP) rs
+                If c t   NOP -> Success (If c t   stmt) rs
+        err -> wrap err "When parsing stmt for IF stmt's case"
 
 parse_if tks = 
     let condition = case parse_logic tks |=?> THEN of
                         Success c rs -> Success (If c NOP NOP) rs
-                        err          -> wrap err
+                        err          -> wrap err "When parsing condition for IF stmt"
     in  condition |-> if_feed_block |-> if_feed_block
+
+inner_make_def_body (Def fn@(Ref name) args NOP) rs =
+    case parse_stmts rs of
+        Success v xs -> Success (Def fn args v) xs
+        err -> wrap err $ "When parsing the definition of function "++name++"'s body"
+
+inner_make_def_args (Def fn@(Ref name) Skip NOP) rs =
+    case parse_args rs of
+        Success v xs -> Success (Def fn v NOP) xs
+        err -> wrap err $ "When parsing the definition of function "++name++"'s args"
+
+parse_def (Name fn:rs) =
+    (Success (Def (Ref fn) Skip NOP) rs) |=?> LP 
+                                         |->  inner_make_def_args
+                                         |=?> LB
+                                         |->  inner_make_def_body
+
+parse_def (x:s) = 
+    Error x s (show x ++ " is not a name")
 
 parse_direct tks = parse_atom tks |-> (\p rs -> Success (Direct p) rs)
 parse_eval tks = parse_expr tks |-> (\p rs -> Success (ExprEval p) rs)
 
 parse_stmt [] = Success END []
-parse_stmt (SEMICOLON:rs) = parse_stmt rs
 parse_stmt (LB:rs) = parse_stmts rs
-parse_stmt (FOR:rs) = parse_for rs
 parse_stmt (IF:rs) = parse_if rs
+parse_stmt (FOR:rs) = parse_for rs
+parse_stmt (DEF:rs) = parse_def rs
 parse_stmt tks@(Name _:LP:rs)        = parse_direct tks
 parse_stmt tks@(Name _:SEMICOLON:rs) = parse_direct tks
 parse_stmt tks@(Name _:[]) = parse_direct tks
 parse_stmt tks@(Name _:rs) = parse_set tks
+parse_stmt tks@(RETURN:rs) = parse_expr rs |-> (\x s -> Success (Return x) s)
+parse_stmt (SEMICOLON:rs) = parse_stmt rs
 parse_stmt tks = parse_eval tks
 
 inner_parse [] [] = []

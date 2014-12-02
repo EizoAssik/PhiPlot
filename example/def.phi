@@ -1,0 +1,11 @@
+def tan (x) {
+    return sin(x) / cos(x);
+}
+
+def max(x, y) {
+    if x>y then {
+        retval = x + y;
+        return retval
+    } else
+        return y
+}

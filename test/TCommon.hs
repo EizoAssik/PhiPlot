@@ -12,7 +12,7 @@ inner_format_ast [] ss = reverse ss
 inner_format_ast (t:ts) ss = 
     case t of
         Success p _ -> inner_format_ast ts ((show p):ss)
-        Error x s i -> inner_format_ast ts (("Error at: " ++ (show x) ++ i):ss)
+        Error x s i -> inner_format_ast ts (("Error: " ++ (show x) ++ "\n\t" ++ i):ss)
 
 format_ast ts = inner_format_ast ts []
 format_token ts = map inner_format_token ts
