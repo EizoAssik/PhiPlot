@@ -85,14 +85,15 @@ parse_term tks = brp (\op l r -> BinOp op l r) parse_factor (\(x:s)->x==MUL || x
 parse_expr tks = brp (\op l r -> BinOp op l r) parse_term (\(x:s)->x==ADD || x==SUB) tks
 parse_list tks = brp (\op l r -> PhiList l r) parse_expr (\(x:s)->x==COMMA) tks
 parse_stmts tks =
-    brp
-    (\op l r -> Block l r)
-    parse_stmt
-    (\x -> case x of
-               SEMICOLON:RB:_ -> False
-               SEMICOLON:_ -> True
-               _ -> False)
-    tks |=?>> SEMICOLON |=?>> RB
+    (brp
+     (\op l r -> Block l r)
+     parse_stmt
+     (\x -> case x of
+                RB:_ -> False
+                SEMICOLON:RB:_ -> False
+                SEMICOLON:_ -> True
+                _ -> False)
+     tks) |=?>> SEMICOLON |=?>> RB
 
 inner_make_for parse_next last rs = 
     case parse_next rs of
@@ -116,7 +117,7 @@ parse_for tks =
         Success (For a f t s _) (n:ns) = iter
     in if n == LB
         then parse_stmts ns |-> (\block xs -> Success (For a f t s block) xs)
-        else parse_expr  ns |-> (\expr  xs -> Success (ExprEval expr) xs)
+        else parse_expr  ns |-> (\expr  xs -> Success (For a f t s (ExprEval expr)) xs)
 
     
 inner_make_set parse_next last rs = 
@@ -141,7 +142,7 @@ parse_stmt [] = Success END []
 parse_stmt (SEMICOLON:rs) = parse_stmt rs
 parse_stmt (LB:rs) = parse_stmts rs
 parse_stmt (FOR:rs) = parse_for rs
-parse_stmt tks@(Name _:LP:rs)        = parse_direct tks |=?> RP
+parse_stmt tks@(Name _:LP:rs)        = parse_direct tks
 parse_stmt tks@(Name _:SEMICOLON:rs) = parse_direct tks
 parse_stmt tks@(Name _:[]) = parse_direct tks
 parse_stmt tks@(Name _:rs) = parse_set tks
