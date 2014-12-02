@@ -10,11 +10,10 @@ reserved = [
     ("from", FROM),
     ("to",   TO),
     ("step", STEP),
-    ("IS",   IS),
-    ("FOR",  FOR),
-    ("FROM", FROM),
-    ("TO",   TO),
-    ("STEP", STEP),
+    ("if",   IF),
+    ("else", ELSE),
+    ("elif", ELIF),
+    ("then", THEN),
     ("(",    LP),
     (")",    RP),
     ("{",    LB),
@@ -24,7 +23,19 @@ reserved = [
     ("-",    SUB),
     ("*",    MUL),
     ("/",    DIV),
-    (";",    SEMICOLON)]
+    (";",    SEMICOLON),
+    ("<",    Structure.LT),
+    (">",    Structure.GT),
+    ("==",   Structure.EQ),
+    ("!=",   Structure.NE),
+    ("<=",   Structure.LE),
+    (">=",   Structure.GE),
+-- 保留以兼容旧语法
+    ("IS",   IS),
+    ("FOR",  FOR),
+    ("FROM", FROM),
+    ("TO",   TO),
+    ("STEP", STEP)]
 
 lookupReserved :: String -> Maybe Token
 lookupReserved name = lookup name reserved

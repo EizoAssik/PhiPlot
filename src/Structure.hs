@@ -10,9 +10,11 @@ import Data.Char hiding ( format )
 -- ERROR 用于在语法分析阶段标记错误
 data Token = Name     String
            | Real     Float
-           | LP  | RP   | LB  | RB   | COMMA | SEMICOLON
-           | FOR | FROM | TO  | STEP | IS  | ERROR | EOF
-           | ADD | SUB  | MUL |  DIV | POWER | Unknown String
+           | LP  | RP   | LB   | RB   | COMMA | SEMICOLON
+           | FOR | FROM | TO   | STEP | IS    | ERROR | EOF
+           | ADD | SUB  | MUL  | DIV  | POWER | Unknown String
+           | IF  | ELSE | ELIF | THEN
+           | EQ  | NE   | LE   | GE   | GT    | LT
            deriving (Show, Eq)
 
 data Atom = Imm Float
