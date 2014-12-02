@@ -14,6 +14,7 @@ data Token = Name     String
            | FOR | FROM | TO   | STEP | IS    | ERROR | EOF
            | ADD | SUB  | MUL  | DIV  | POWER | Unknown String
            | IF  | ELSE | ELIF | THEN
+           | AND | OR   | NOT
            | EQ  | NE   | LE   | GE   | GT    | LT
            deriving (Show, Eq)
 

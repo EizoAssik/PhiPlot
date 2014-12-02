@@ -84,6 +84,8 @@ brp_constructor constructor ((lr, lop):(rr, rop):s) =
 parse_term tks = brp (\op l r -> BinOp op l r) parse_factor (\(x:s)->x==MUL || x==DIV) tks
 parse_expr tks = brp (\op l r -> BinOp op l r) parse_term (\(x:s)->x==ADD || x==SUB) tks
 parse_list tks = brp (\op l r -> PhiList l r) parse_expr (\(x:s)->x==COMMA) tks
+parse_cmp  tks = brp (\op l r -> BinOp op l r) parse_term (\(x:s)->x==ADD || x==SUB) tks
+
 parse_stmts tks =
     (brp
      (\op l r -> Block l r)
