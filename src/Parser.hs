@@ -12,6 +12,10 @@ parse_atom (SUB:rs) =
     case parse_atom rs of
         Success atom rs -> Success (Negative $ Elem atom) rs
         Error tk rs er -> Error tk rs ("Error in parsing Negative Atom: " ++ er)
+parse_atom (NOT:rs) = 
+    case parse_expr rs of
+        Success expr rs -> Success (Not expr) rs
+        Error tk rs er -> Error tk rs ("Error in parsing NOT logic: " ++ er)
 parse_atom tks@(LP:rs) =
     case parse_list rs of
         succ@(Success expr (RP:xs)) ->

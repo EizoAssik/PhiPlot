@@ -20,15 +20,18 @@ data Token = Name     String
 
 data Atom = Imm Float
           | Ref String
-          | Subexpr Expr
+          | Not Expr
+          | Subexpr  Expr
           | Negative Expr
-          | Funcall Atom Expr
+          | Funcall  Atom Expr
           | Void
           deriving (Show, Eq)
 
 data Expr = Elem    Atom
           | BinOp   Token  Expr  Expr
           | PhiList Expr Expr
+          | Cmp     Expr Expr
+          | Logic   Expr Expr
           | Skip
           deriving (Show, Eq)
 
