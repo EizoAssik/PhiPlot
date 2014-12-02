@@ -85,10 +85,21 @@ brp_constructor constructor ((lr, lop):(rr, rop):s) =
     in  brp_constructor constructor next
 -- BRP 结束                                       
 
+tk_is_cmp (Structure.EQ:_) = True 
+tk_is_cmp (Structure.NE:_) = True 
+tk_is_cmp (Structure.LT:_) = True 
+tk_is_cmp (Structure.GT:_) = True 
+tk_is_cmp (Structure.LE:_) = True 
+tk_is_cmp (Structure.GE:_) = True 
+tk_is_cmp _ = False
+
 parse_term tks = brp (\op l r -> BinOp op l r) parse_factor (\(x:s)->x==MUL || x==DIV) tks
-parse_expr tks = brp (\op l r -> BinOp op l r) parse_term (\(x:s)->x==ADD || x==SUB) tks
-parse_list tks = brp (\op l r -> PhiList l r) parse_expr (\(x:s)->x==COMMA) tks
-parse_cmp  tks = brp (\op l r -> BinOp op l r) parse_term (\(x:s)->x==ADD || x==SUB) tks
+parse_expr tks = brp (\op l r -> BinOp op l r) parse_term   (\(x:s)->x==ADD || x==SUB) tks
+parse_list tks = brp (\op l r -> PhiList l r)  parse_expr   (\(x:s)->x==COMMA) tks
+parse_cmp  tks = brp (\op l r -> BinOp op l r) parse_expr   tk_is_cmp tks
+parse_and  tks = brp (\op l r -> BinOp op l r) parse_cmp    (\(x:_)->x==AND) tks
+parse_logic tks = 
+    brp (\op l r -> Logic op l r) parse_cmp (\(x:s)->x==OR) tks
 
 parse_stmts tks =
     (brp
@@ -137,9 +148,41 @@ parse_set tks =
     let feed_expr = (inner_make_set parse_expr)
         atom = parse_atom tks
         base = case atom of
-                   Error x s i  -> Error x s i
                    Success a rs -> Success (Set a Skip) rs
+                   err          -> wrap err
     in base |=?> IS |-> feed_expr                                  
+
+if_feed_block last (LB:xs) =
+    case parse_stmts xs of
+        Success block rs ->
+            case last of
+                If c NOP NOP -> Success (If c block NOP) rs
+                If c t   NOP -> Success (If c t   block) rs
+        err -> wrap err 
+
+if_feed_block last (ELIF:xs) =
+    case parse_if xs of
+        Success stmt rs ->
+            case last of
+                If c NOP NOP -> Success (If c stmt  NOP) rs
+                If c t   NOP -> Success (If c t    stmt) rs
+        err -> wrap err 
+
+if_feed_block last (ELSE:xs) = if_feed_block last xs
+
+if_feed_block last xs =
+    case parse_expr xs of
+        Success expr rs ->
+            case last of
+                If c NOP NOP -> Success (If c (ExprEval expr) NOP) rs
+                If c t   NOP -> Success (If c t   (ExprEval expr)) rs
+        err -> wrap err 
+
+parse_if tks = 
+    let condition = case parse_logic tks |=?> THEN of
+                        Success c rs -> Success (If c NOP NOP) rs
+                        err          -> wrap err
+    in  condition |-> if_feed_block |-> if_feed_block
 
 parse_direct tks = parse_atom tks |-> (\p rs -> Success (Direct p) rs)
 parse_eval tks = parse_expr tks |-> (\p rs -> Success (ExprEval p) rs)
@@ -148,6 +191,7 @@ parse_stmt [] = Success END []
 parse_stmt (SEMICOLON:rs) = parse_stmt rs
 parse_stmt (LB:rs) = parse_stmts rs
 parse_stmt (FOR:rs) = parse_for rs
+parse_stmt (IF:rs) = parse_if rs
 parse_stmt tks@(Name _:LP:rs)        = parse_direct tks
 parse_stmt tks@(Name _:SEMICOLON:rs) = parse_direct tks
 parse_stmt tks@(Name _:[]) = parse_direct tks

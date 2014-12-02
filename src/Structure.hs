@@ -18,30 +18,30 @@ data Token = Name     String
            | EQ  | NE   | LE   | GE   | GT    | LT
            deriving (Show, Eq)
 
-data Atom = Imm Float
-          | Ref String
-          | Not Expr
+data Atom = Not      Expr
           | Subexpr  Expr
           | Negative Expr
+          | Imm      Float
+          | Ref      String
           | Funcall  Atom Expr
           | Void
           deriving (Show, Eq)
 
 data Expr = Elem    Atom
-          | BinOp   Token  Expr  Expr
-          | PhiList Expr Expr
-          | Cmp     Expr Expr
-          | Logic   Expr Expr
+          | PhiList Expr  Expr
+          | BinOp   Token Expr Expr
+          | Logic   Token Expr Expr
           | Skip
           deriving (Show, Eq)
 
-data Stmt = Set Atom Expr
-          | For Atom Expr Expr Expr Stmt
-          | Block   Stmt Stmt
-          | Direct Atom
+data Stmt = Direct   Atom
           | ExprEval Expr
-          | END 
+          | Set      Atom Expr
+          | Block    Stmt Stmt
+          | If       Expr Stmt Stmt
+          | For      Atom Expr Expr Expr Stmt
           | NOP
+          | END 
           deriving (Show, Eq)
 
 data ParseResult a = Success a [Token]
