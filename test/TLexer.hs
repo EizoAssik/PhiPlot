@@ -10,6 +10,6 @@ main = do
     let fn = head args
     srcs <- readFile $ head args
     let tokens = lexme srcs
-        tkstr  = reverse $ format_token tokens []
+        tkstr  = format_token tokens
     printListLn tkstr
 
