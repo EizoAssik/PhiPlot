@@ -11,8 +11,8 @@ void phi_exit(int no);
 
 #define REGBINOP(name, op) \
     void name () { \
-        f64 l = popv(); \
         f64 r = popv(); \
+        f64 l = popv(); \
         pushv(l op r); \
     }
     

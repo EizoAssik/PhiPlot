@@ -28,9 +28,9 @@ void push() { DS[++DTOP] = ((double*)PM)[PC++]; }
 void and()  { DS[DTOP-1] *= DS[DTOP]; DTOP--; }
 void or()   { DS[DTOP-1] += DS[DTOP]; DTOP--; }
 void not()  { DS[DTOP] = (DS[DTOP]==0); }
-void jmp()  { PC = PM[PC+1]; }
-void jp()   { if(DS[DTOP]>0)  PC = PM[PC+1]; }
-void jz()   { if(DS[DTOP]==0) PC = PM[PC+1]; }
+void jmp()  { PC = PM[PC]; }
+void jp()   { if(DS[DTOP]>0)  { PC = PM[PC]; } else { PC++; } }
+void jz()   { if(DS[DTOP]==0) { PC = PM[PC]; } else { PC++; } }
 
 void ret()   { PC = RS[RTOP--]; }
 void call()  { RS[++RTOP] = PC + 1; PC = PM[PC]; }
@@ -70,8 +70,10 @@ void halt() {
 
 void debug() {
     ui64 i = 1;
-    while(i<=DTOP)
-        phi_log("[%ld] %lf\n", i, DS[i++]);
+    while(i<=DTOP) {
+        phi_log("[%ld] %lf\n", i, DS[i]);
+        i += 1;
+    }
 }
 
 static fnptr OPCODE[] = {
