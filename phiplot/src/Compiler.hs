@@ -4,6 +4,11 @@ import Structure
 
 dump_token tk = [show tk]
 
+arglist_length al = 
+    case al of
+        PhiList l r -> (arglist_length l) + (arglist_length r)
+        _ -> 1
+
 compile_fn (Ref "draw") =    ["DRAW"]
 compile_fn (Ref fn) =    ["CALL", ':':fn]
 compile_ref (Ref val) =  ["PUSH", '&':val]
@@ -42,6 +47,7 @@ compile_stmt (If cond succ fail) =
                   ++ succ_code
                   ++ ["JMP", ":+" ++ (show $ (1+) $ length fail_code)]
                   ++ fail_code
+
 
 compile (Success stmt _) = compile_stmt stmt
 
