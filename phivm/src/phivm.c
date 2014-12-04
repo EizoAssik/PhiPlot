@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "common.h"
 
 #define DS_SIZE 4096
@@ -8,7 +9,7 @@ typedef void (*fnptr)();
 
 static f64  DS[DS_SIZE];
 static ui64 RS[RS_SIZE];
-static ui64 PM[PM_SIZE] = {0x16, 0x00, 0x15};
+static ui64 PM[PM_SIZE];
 
 static ui64 DTOP = 0;
 static ui64 RTOP = 0;
@@ -25,11 +26,12 @@ void push() { DS[++DTOP] = ((double*)PM)[PC++]; }
 void and()  { DS[DTOP-1] *= DS[DTOP]; DTOP--; }
 void or()   { DS[DTOP-1] += DS[DTOP]; DTOP--; }
 void not()  { DS[DTOP] = (DS[DTOP]==0); }
+void jmp()  { PC = PM[PC+1]; }
 void jp()   { if(DS[DTOP]>0)  PC = PM[PC+1]; }
 void jz()   { if(DS[DTOP]==0) PC = PM[PC+1]; }
 
-void ret()   { PC = RS[RTOP--]; }
-void call()  { RS[++RTOP] = PC; }
+void ret()  { PC = RS[RTOP--]; }
+void call() { RS[++RTOP] = PC + 1; PC = PM[PC]; }
 
 static f64 swp;
 void swap() { swp = DS[DTOP]; DS[DTOP] = DS[DTOP-1]; DS[DTOP-1] = swp; }
@@ -46,7 +48,7 @@ void draw() {
     f64 x, y;
     x = popv();
     y = popv();
-    phi_log("(%ld, %ld)\n", x, y);
+    phi_log("(%lf, %lf)\n", x, y);
 }
 
 void halt() {
@@ -64,9 +66,9 @@ static fnptr OPCODE[] = {
     nop,  pop,  push, swap,
     dup,  add,  sub,  mul,
     div,  call, ret,  neg,
-    and,  or,   jp,   jz,
-    lt,   eq,   gt,   not,
-    draw, halt, debug
+    and,  or,   jmp,  jp,
+    jz,   lt,   eq,   gt,
+    not,  draw, halt, debug
 };
 
 void mainloop() {
@@ -82,7 +84,19 @@ void mainloop() {
     }
 }
 
-int main() {
+int main(int argc, const char *argv[]) {
+    if (argc != 2) {
+        phi_error("No hex given.\n");
+        phi_exit(0);
+    }
+    FILE * hex = fopen(argv[1], "rb");
+    if (!hex) {
+        phi_error("Cannot open hex: %s\n", argv[1]);
+        phi_exit(-1);
+    }
+    ui64 fs = filesize(hex);
+    fread((void*) PM, 1, fs, hex);
+    fclose(hex);
     mainloop();
     return 0;
 }
