@@ -20,7 +20,7 @@ parse_atom tks@(LP:rs) =
     case parse_list rs of
         succ@(Success expr (RP:xs)) ->
             Success (Subexpr expr) xs
-        err@(Error c s info) -> Error c s info
+        err@(Error _ _ _) -> wrap err "When parsing sub-expr with `()'"
 parse_atom (tk:rs) = Error tk rs ("Token " ++ show tk ++ " is not an atom.")
 parse_atom [] = Success Void []
 
