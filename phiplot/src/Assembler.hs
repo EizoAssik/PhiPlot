@@ -1,4 +1,4 @@
-module Main where
+module Assembler where
 
 import Data.Word
 import Data.Bits
@@ -72,13 +72,3 @@ removeComments src =
 tokenize src = words $ removeComments src
 
 assembler src = asm $ tokenize src
-
-main = do
-    args <- getArgs
-    let fn = head args
-        hexfn = fn ++ ".hex"
-    src <- readFile fn
-    let hex = pack $ foldl1 (++) $ map word64ToWord8 $ assembler src
-    Data.ByteString.writeFile hexfn hex
-        
-    

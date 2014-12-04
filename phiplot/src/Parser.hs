@@ -222,7 +222,7 @@ parse_stmt (SEMICOLON:rs) = parse_stmt rs
 parse_stmt tks = parse_eval tks
 
 inner_parse [] [] = []
-inner_parse [] st = reverse st
+inner_parse [] st = reverse $ (Success END []):st
 inner_parse tk stmts = 
     case parse_stmt tk of
         succ@(Success stmt xs) -> inner_parse xs (succ:stmts)

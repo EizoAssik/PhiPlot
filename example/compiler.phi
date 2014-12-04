@@ -1,0 +1,5 @@
+x = 9
+if 2<3 then
+    draw(0, x)
+else
+    draw(3*4, 5)

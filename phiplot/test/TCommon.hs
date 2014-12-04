@@ -17,7 +17,7 @@ inner_format_ast (t:ts) ss =
 format_ast ts = inner_format_ast ts []
 format_token ts = map inner_format_token ts
 
-printListLn [] = putStrLn "Done."
+printListLn [] = putStrLn ""
 printListLn (ss:rs) = do
     putStrLn ss
     printListLn rs
