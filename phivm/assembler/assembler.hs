@@ -34,7 +34,7 @@ keys = [
 
 word64ToWord8 :: Word64 -> [Word8]
 word64ToWord8 raw = 
-    map (\x -> fromIntegral $ (.&. 0xFF) $ shiftR raw x ) [56,48..0]
+    map (\x -> fromIntegral $ (.&. 0xFF) $ shiftR raw x ) [0,8..56]
 
 findKnownCode name = 
     case lookup name keys of
