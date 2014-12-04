@@ -1,15 +1,17 @@
 #include <stdio.h>
 #include "common.h"
 
-#define DS_SIZE 4096
-#define RS_SIZE 4096
-#define PM_SIZE 4096
+#define DS_SIZE  4096
+#define RS_SIZE  4096
+#define PM_SIZE  4096
+#define MEM_SIZE 4096
 
 typedef void (*fnptr)();
 
-static f64  DS[DS_SIZE];
-static ui64 RS[RS_SIZE];
-static ui64 PM[PM_SIZE];
+static f64  DS [DS_SIZE];
+static ui64 RS [RS_SIZE];
+static ui64 PM [PM_SIZE];
+static f64  MEM[MEM_SIZE];
 
 static ui64 DTOP = 0;
 static ui64 RTOP = 0;
@@ -30,8 +32,18 @@ void jmp()  { PC = PM[PC+1]; }
 void jp()   { if(DS[DTOP]>0)  PC = PM[PC+1]; }
 void jz()   { if(DS[DTOP]==0) PC = PM[PC+1]; }
 
-void ret()  { PC = RS[RTOP--]; }
-void call() { RS[++RTOP] = PC + 1; PC = PM[PC]; }
+void ret()   { PC = RS[RTOP--]; }
+void call()  { RS[++RTOP] = PC + 1; PC = PM[PC]; }
+void store() {
+    f64 value = popv();
+    ui64 addr = (ui64) popv();
+    MEM[addr] = value;
+}
+
+void load() {
+    ui64 addr = (ui64) popv();
+    pushv(MEM[addr]);
+}
 
 static f64 swp;
 void swap() { swp = DS[DTOP]; DS[DTOP] = DS[DTOP-1]; DS[DTOP-1] = swp; }
@@ -46,8 +58,8 @@ REGBINOP(gt, >)
 
 void draw() {
     f64 x, y;
-    x = popv();
     y = popv();
+    x = popv();
     phi_log("(%lf, %lf)\n", x, y);
 }
 
@@ -68,7 +80,9 @@ static fnptr OPCODE[] = {
     div,  call, ret,  neg,
     and,  or,   jmp,  jp,
     jz,   lt,   eq,   gt,
-    not,  draw, halt, debug
+    not,  draw, halt, 
+    store, load,
+    debug,
 };
 
 void mainloop() {

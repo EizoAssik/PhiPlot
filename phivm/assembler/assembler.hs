@@ -30,7 +30,9 @@ keys = [
     ("GT",   0x13),
     ("NOT",  0x14),
     ("DRAW", 0x15),
-    ("HALT", 0x16) ] :: [(String, Word64)]
+    ("HALT", 0x16),
+    ("STORE",0x17),
+    ("LOAD", 0x18) ] :: [(String, Word64)]
 
 word64ToWord8 :: Word64 -> [Word8]
 word64ToWord8 raw = 
@@ -51,7 +53,7 @@ asm [] = []
 
 asm (x:literal:xs)
     | x == "PUSH" = (findKnownCode x):(dumpDouble literal):(asm xs)
-    | elem x ["PUSH", "JMP", "JP", "JZ"] = 
+    | elem x ["PUSH", "JMP", "JP", "JZ", "CALL"] = 
         (findKnownCode x):(dumpWord64 literal):(asm xs)
 
 asm (x:xs) = 
