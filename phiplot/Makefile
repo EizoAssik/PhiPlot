@@ -7,7 +7,7 @@ LIBGMP=/usr/local/lib
 phicc: Structure.hs Lexer.hs Parser.hs Compiler.hs Assembler.hs Preprocessor.hs Phi.hs
 	$(GHC) -o $@ -L$(LIBGMP) $^ 
 
-compiler: Structure.hs Lexer.hs Parser.hs Compiler.hs test/TCompiler.hs Preprocessor.hs
+compiler: Structure.hs Lexer.hs Parser.hs Compiler.hs test/TCompiler.hs Preprocessor.hs test/TCommon.hs
 	$(GHC) -o $@ -L$(LIBGMP) $^ 
 
 parser: Structure.hs Lexer.hs Parser.hs test/TParser.hs test/TCommon.hs
