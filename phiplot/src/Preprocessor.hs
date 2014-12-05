@@ -33,7 +33,8 @@ trans_jmp code = inner_jmp 0 code
 
 trans_fcall codes = 
     let address = inner_locate_fcall 0 codes []
-    in  inner_replace_funcall codes address
+        codes_cd = comment_def_label 0 codes address
+    in  inner_replace_funcall codes_cd address
     
 inner_locate_fcall _ [] table = table
 inner_locate_fcall pc (x:xs) table = 
@@ -58,3 +59,12 @@ update (t@(k,v):xs) key value =
            then (key, value):rest
            else t:rest
 
+comment_def_label _ xs [] = xs
+comment_def_label _ [] _  = []
+comment_def_label pc (x:xs) address =
+    let  rest = comment_def_label (pc+1) xs address
+    in  case lookup x address of
+            Nothing -> x:rest
+            Just n  -> if n == pc
+                           then rest
+                           else x:rest

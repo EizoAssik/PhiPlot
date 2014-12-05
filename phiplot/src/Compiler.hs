@@ -29,6 +29,7 @@ compile_atom (Subexpr expr) = compile_expr expr
 -- Hopes that the parser will never send wrong sructures...
 compile_atom (Funcall fn args) =
     (compile_expr args) ++ (compile_fn fn)
+compile_atom (Negative expr) = (compile_expr expr) ++ ["NEG"]
 
 compile_expr Skip = ["NOP"]
 compile_expr (Elem atom) = compile_atom atom
@@ -73,15 +74,12 @@ compile_stmt (Def fn args body) =
     in  ("@"++name):binding ++ code
 
 
+replace_local_var [] _ _ = []
 replace_local_var (x:xs) params prefix = 
     let this = if (head x == '&') && (elem (tail x) params)
                   then "&"++prefix++"-"++(tail x)
                   else x
     in  this:(replace_local_var xs params prefix)
-    
-        
-    
-
 
 compile [] = []
 compile ((Success def@(Def _ _ _) _):xs) = (compile xs) ++ (compile_stmt def)
