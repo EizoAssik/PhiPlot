@@ -96,12 +96,17 @@ tk_is_cmp _ = False
 
 parse_term tks = brp (\op l r -> BinOp op l r) parse_factor (\(x:s)->x==MUL || x==DIV) tks
 parse_expr tks = brp (\op l r -> BinOp op l r) parse_term   (\(x:s)->x==ADD || x==SUB) tks
-parse_list tks = brp (\op l r -> PhiList l r)  parse_expr   (\(x:s)->x==COMMA) tks
-parse_args tks = brp (\op l r -> ArgList l r)  parse_expr   (\(x:s)->x==COMMA) tks |=?> RP
 parse_cmp  tks = brp (\op l r -> BinOp op l r) parse_expr   tk_is_cmp tks
 parse_and  tks = brp (\op l r -> BinOp op l r) parse_cmp    (\(x:_)->x==AND) tks
 parse_logic tks = 
     brp (\op l r -> Logic op l r) parse_cmp (\(x:s)->x==OR) tks
+
+parse_list xs@(RP:rs) = Success (PhiList Skip Skip) xs
+parse_list tks = brp (\op l r -> PhiList l r)  parse_expr   (\(x:s)->x==COMMA) tks
+
+parse_args (RP:rs) = Success (ArgList Skip Skip) rs
+parse_args tks = brp (\op l r -> ArgList l r)  parse_expr   (\(x:s)->x==COMMA) tks |=?> RP
+
 
 parse_stmts tks =
     (brp
