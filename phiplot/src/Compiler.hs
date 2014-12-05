@@ -7,6 +7,8 @@ dump_token tk = [show tk]
 arglist_length al = 
     case al of
         PhiList l r -> (arglist_length l) + (arglist_length r)
+        ArgList l r -> (arglist_length l) + (arglist_length r)
+        Skip -> 0
         _ -> 1
 
 compile_fn (Ref "draw") =    ["DRAW"]
