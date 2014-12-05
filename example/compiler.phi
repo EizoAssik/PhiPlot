@@ -1,5 +1,10 @@
-x = 9
+def add(x, y) {
+    k = x * y;
+    return k + 1;
+}
+
+t = 9
 if 2<3 then
-    draw(0, x)
+    draw(add(t, 1), add(t, -1))
 else
     draw(3*4, 5)
