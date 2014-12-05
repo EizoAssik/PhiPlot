@@ -30,3 +30,31 @@ inner_jmp pc (x:xs) =
             else x:rest
 
 trans_jmp code = inner_jmp 0 code
+
+trans_fcall codes = 
+    let address = inner_locate_fcall 0 codes []
+    in  inner_replace_funcall codes address
+    
+inner_locate_fcall _ [] table = table
+inner_locate_fcall pc (x:xs) table = 
+    let new_table = if '@' == head x
+        then case lookup x table of
+                 Nothing -> (x, pc):table
+                 Just n  -> update table x pc
+        else table
+    in  inner_locate_fcall (pc+1) xs new_table
+
+inner_replace_funcall [] _ = []
+inner_replace_funcall (x:xs) address =
+    let rest = inner_replace_funcall xs address
+    in case lookup x address of
+           Nothing -> x:rest
+           Just n  -> (show n):rest
+
+update [] _ _ = []     
+update (t@(k,v):xs) key value = 
+    let rest = update xs key value
+    in if k == key
+           then (key, value):rest
+           else t:rest
+

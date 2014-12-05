@@ -15,7 +15,7 @@ main = do
     src <- readFile fn
     let tokens = lexme src
         ast = Parser.parse tokens 
-        code_row = foldl1 (++) $ map compile ast
+        code_row = compile ast
         code = trans_jmp $ alloc code_row
         hex = pack $ foldl1 (++) $ map word64ToWord8 $ asm code
     Data.ByteString.writeFile hexfn hex

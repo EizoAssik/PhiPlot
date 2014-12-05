@@ -18,13 +18,13 @@ list_expand ls =
         Skip -> []
         expr -> [expr]
 
-param_expand pl = map (\x -> let Elem ref = x in ref) $ list_expand pl
+param_expand pl = map (\x -> let Elem (Ref ref) = x in ref) $ list_expand pl
 
-compile_fn (Ref "draw") =    ["DRAW"]
-compile_fn (Ref fn) =    ["CALL", ':':fn]
-compile_ref (Ref val) =  ["PUSH", '&':val]
-compile_atom (Ref val) = ["PUSH", '&':val, "LOAD"]
-compile_atom (Imm n) =   ["PUSH", show n]
+compile_fn (Ref "draw") = ["DRAW"]
+compile_fn (Ref fn) =     ["CALL", '@':fn]
+compile_ref (Ref val) =   ["PUSH", '&':val]
+compile_atom (Ref val) =  ["PUSH", '&':val, "LOAD"]
+compile_atom (Imm n) =    ["PUSH", show n]
 compile_atom (Subexpr expr) = compile_expr expr
 -- Hopes that the parser will never send wrong sructures...
 compile_atom (Funcall fn args) =
@@ -58,9 +58,33 @@ compile_stmt (If cond succ fail) =
                   ++ succ_code
                   ++ ["JMP", ":+" ++ (show $ (1+) $ length fail_code)]
                   ++ fail_code
--- compile_stmt (Def
+
+compile_stmt (Def fn args body) = 
+    let Ref name = fn
+        params = param_expand args
+        param_count = length params
+        binding = foldl1 (++) $ map (\x-> ["PUSH",
+                                           "&"++name++"-"++x,
+                                           "SWAP",
+                                           "STORE"])
+                                    (reverse params)
+        code_raw = compile_stmt body
+        code = replace_local_var code_raw params name
+    in  ("@"++name):binding ++ code
 
 
-compile (Success stmt _) = compile_stmt stmt
+replace_local_var (x:xs) params prefix = 
+    let this = if (head x == '&') && (elem (tail x) params)
+                  then "&"++prefix++"-"++(tail x)
+                  else x
+    in  this:(replace_local_var xs params prefix)
+    
+        
+    
+
+
+compile [] = []
+compile ((Success def@(Def _ _ _) _):xs) = (compile xs) ++ (compile_stmt def)
+compile ((Success stmt _):xs) = (compile_stmt stmt) ++ compile xs
 
 
