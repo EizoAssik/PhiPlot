@@ -4,12 +4,21 @@ import Structure
 
 dump_token tk = [show tk]
 
-arglist_length al = 
+list_length al = 
     case al of
-        PhiList l r -> (arglist_length l) + (arglist_length r)
-        ArgList l r -> (arglist_length l) + (arglist_length r)
+        PhiList l r -> (list_length l) + (list_length r)
+        ArgList l r -> (list_length l) + (list_length r)
         Skip -> 0
         _ -> 1
+
+list_expand ls = 
+    case ls of
+        ArgList l r -> (list_expand l) ++ (list_expand r)
+        PhiList l r -> (list_expand l) ++ (list_expand r)
+        Skip -> []
+        expr -> [expr]
+
+param_expand pl = map (\x -> let Elem ref = x in ref) $ list_expand pl
 
 compile_fn (Ref "draw") =    ["DRAW"]
 compile_fn (Ref fn) =    ["CALL", ':':fn]
@@ -49,6 +58,7 @@ compile_stmt (If cond succ fail) =
                   ++ succ_code
                   ++ ["JMP", ":+" ++ (show $ (1+) $ length fail_code)]
                   ++ fail_code
+-- compile_stmt (Def
 
 
 compile (Success stmt _) = compile_stmt stmt
