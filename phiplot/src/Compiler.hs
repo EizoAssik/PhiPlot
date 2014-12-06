@@ -1,6 +1,7 @@
 module Compiler where
 
 import Structure
+import Data.Char ( toUpper )
 
 dump_token tk = [show tk]
 
@@ -20,10 +21,13 @@ list_expand ls =
 
 param_expand pl = map (\x -> let Elem (Ref ref) = x in ref) $ list_expand pl
 
-compile_fn (Ref "draw") = ["DRAW"]
-compile_fn (Ref fn) =     ["CALL", '@':fn]
-compile_ref (Ref val) =   ["PUSH", '&':val]
+builtins = ["draw", "sin", "cos", "tan"]
+compile_fn (Ref fn) = 
+    if elem fn builtins
+        then [map toUpper fn]
+        else ["CALL", '@':fn]
 
+compile_ref (Ref val)   = ["PUSH", '&':val]
 compile_atom (Not expr) = (compile_expr expr) ++ ["NOT"]
 compile_atom (Ref val)  = ["PUSH", '&':val, "LOAD"]
 compile_atom (Imm n)    = ["PUSH", show n]
