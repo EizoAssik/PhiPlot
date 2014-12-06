@@ -23,24 +23,34 @@ param_expand pl = map (\x -> let Elem (Ref ref) = x in ref) $ list_expand pl
 compile_fn (Ref "draw") = ["DRAW"]
 compile_fn (Ref fn) =     ["CALL", '@':fn]
 compile_ref (Ref val) =   ["PUSH", '&':val]
-compile_atom (Ref val) =  ["PUSH", '&':val, "LOAD"]
-compile_atom (Imm n) =    ["PUSH", show n]
+
+compile_atom (Not expr) = (compile_expr expr) ++ ["NOT"]
+compile_atom (Ref val)  = ["PUSH", '&':val, "LOAD"]
+compile_atom (Imm n)    = ["PUSH", show n]
 compile_atom (Subexpr expr) = compile_expr expr
 -- Hopes that the parser will never send wrong sructures...
 compile_atom (Funcall fn args) =
     (compile_expr args) ++ (compile_fn fn)
 compile_atom (Negative expr) = (compile_expr expr) ++ ["NEG"]
+compile_atom Void = []
 
 compile_expr Skip = ["NOP"]
 compile_expr (Elem atom) = compile_atom atom
 compile_expr (BinOp tk l r) = 
     (compile_expr l) ++ (compile_expr r) ++ (dump_token tk)
-compile_expr (Logic tk l r) = 
-    (compile_expr l) ++ (compile_expr r) ++ (dump_token tk)
 compile_expr (ArgList car cdr) = 
     (compile_expr car) ++ (compile_expr cdr)
 compile_expr (PhiList car cdr) = 
     (compile_expr car) ++ (compile_expr cdr)
+compile_expr (Logic tk l r) = 
+    let opcode = case tk of
+                     Structure.LT -> ["LT"]
+                     Structure.LE -> ["GT", "NOT"]
+                     Structure.EQ -> ["EQ"]
+                     Structure.GE -> ["LT", "NOT"]
+                     Structure.GT -> ["GT"]
+                     Structure.NE -> ["EQ", "NOT"]
+    in  (compile_expr l) ++ (compile_expr r) ++ opcode
 
 compile_stmt (ExprEval expr) = compile_expr expr
 compile_stmt (Direct atom) = compile_atom atom
@@ -59,6 +69,29 @@ compile_stmt (If cond succ fail) =
                   ++ succ_code
                   ++ ["JMP", ":+" ++ (show $ (1+) $ length fail_code)]
                   ++ fail_code
+compile_stmt (For ref from to step stmts) = 
+    let to_code   = compile_expr to
+        ref_code  = compile_ref  ref
+        from_code = compile_expr from
+        step_code = compile_expr step
+        body_code = compile_stmt stmts
+        jmp_off1  = 6 + 2 * (length ref_code)
+                      + length step_code
+                      + length body_code
+        jmp_off2  = jmp_off1 + 2 + length ref_code + length to_code 
+    in ref_code ++ from_code
+                ++ ["STORE"]
+                ++ ref_code
+                ++ ["LOAD"]
+                ++ to_code
+                ++ ["GT", "JP", ":+" ++ show jmp_off1]
+                ++ body_code
+                ++ ref_code
+                ++ ref_code ++ ["LOAD"]
+                ++ step_code
+                ++ ["ADD", "STORE"]
+                ++ ["JMP", ":-" ++ show jmp_off2]
+    
 
 compile_stmt (Def fn args body) = 
     let Ref name = fn
@@ -71,7 +104,7 @@ compile_stmt (Def fn args body) =
                                     (reverse params)
         code_raw = compile_stmt body
         code = replace_local_var code_raw params name
-    in  ("@"++name):binding ++ code
+    in  ("@@"++name):binding ++ code
 
 
 replace_local_var [] _ _ = []

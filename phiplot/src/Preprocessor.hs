@@ -25,9 +25,10 @@ alloc codes =
 inner_jmp _ [] = []
 inner_jmp pc (x:xs) = 
     let rest = inner_jmp (pc+1) xs
-    in  if ":+" == take 2 x
-            then (show $ pc + (read (x \\ ":+") :: Int)):rest
-            else x:rest
+    in  case take 2 x of
+            ":+" -> (show $ pc + (read (x \\ ":+") :: Int)):rest
+            ":-" -> (show $ pc - (read (x \\ ":-") :: Int)):rest
+            _    -> x:rest
 
 trans_jmp code = inner_jmp 0 code
 
@@ -38,9 +39,9 @@ trans_fcall codes =
     
 inner_locate_fcall _ [] table = table
 inner_locate_fcall pc (x:xs) table = 
-    let new_table = if '@' == head x
+    let new_table = if "@@" == take 2 x
         then case lookup x table of
-                 Nothing -> (x, pc):table
+                 Nothing -> (tail x, pc):table
                  Just n  -> update table x pc
         else table
     in  inner_locate_fcall (pc+1) xs new_table
@@ -49,7 +50,9 @@ inner_replace_funcall [] _ = []
 inner_replace_funcall (x:xs) address =
     let rest = inner_replace_funcall xs address
     in case lookup x address of
-           Nothing -> x:rest
+           Nothing -> if "@@" == take 2 x
+                           then "NOP":rest
+                           else x:rest
            Just n  -> (show n):rest
 
 update [] _ _ = []     
