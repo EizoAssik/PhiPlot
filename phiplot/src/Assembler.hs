@@ -32,7 +32,10 @@ keys = [
     ("DRAW", 0x15),
     ("HALT", 0x16),
     ("STORE",0x17),
-    ("LOAD", 0x18) ] :: [(String, Word64)]
+    ("LOAD", 0x18),
+    ("SIN",  0x19),
+    ("COS",  0x1A),
+    ("TAN",  0x1B) ] :: [(String, Word64)]
 
 word64ToWord8 :: Word64 -> [Word8]
 word64ToWord8 raw = 
