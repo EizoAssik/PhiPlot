@@ -3,6 +3,8 @@ module Parser ( parse, ParseResult(..) ) where
 import Structure
 
 parse_atom (Real r:rs) = Success (Imm r) rs
+parse_atom (Name "PI":rs) = Success (Imm $ pi) rs
+parse_atom (Name "E":rs) = Success (Imm $ exp 1) rs
 parse_atom (Name n:[]) = Success (Ref n) []
 parse_atom (Name n:LP:rs) = case parse_list rs of
                   Success pl (RP:xs) -> Success (Funcall (Ref n) pl) xs
