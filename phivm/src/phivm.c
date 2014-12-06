@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <math.h>
 #include "common.h"
+#include "phivm.h"
 
 #define DS_SIZE  4096
 #define RS_SIZE  4096
@@ -56,6 +58,10 @@ REGBINOP(eq, ==)
 REGBINOP(lt, <)
 REGBINOP(gt, >)
 
+REGFUNC(phi_sin, sin)
+REGFUNC(phi_cos, cos)
+REGFUNC(phi_tan, tan)
+
 void draw() {
     f64 x, y;
     y = popv();
@@ -84,6 +90,7 @@ static fnptr OPCODE[] = {
     jz,   lt,   eq,   gt,
     not,  draw, halt, 
     store, load,
+    phi_sin, phi_cos, phi_tan,
     debug,
 };
 
