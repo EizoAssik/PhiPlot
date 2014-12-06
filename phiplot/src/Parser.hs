@@ -77,7 +77,8 @@ brp_inner constructor functor test stack tks =
                      brp_inner constructor functor test ((err, EOF):stack) rs
                   
 brp_constructor constructor ((r,   EOF):[]) = r
-brp_constructor constructor ((err, EOF):s)  = err
+brp_constructor constructor ((err@(Error _ _ _), EOF):s)  = err
+brp_constructor constructor (_:(err@(Error _ _ _), EOF):_) = err
 brp_constructor constructor ((lr, lop):(rr, rop):s) = 
     let Success litem _ = lr
         Success ritem r = rr
@@ -93,20 +94,20 @@ tk_is_cmp (Structure.LE:_) = True
 tk_is_cmp (Structure.GE:_) = True 
 tk_is_cmp _ = False
 
-
-parse_term tks = brp (\op l r -> BinOp op l r) parse_factor (\(x:s)->x==MUL || x==DIV) tks
-parse_expr tks = brp (\op l r -> BinOp op l r) parse_term   (\(x:s)->x==ADD || x==SUB) tks
-parse_cmp  tks = brp (\op l r -> BinOp op l r) parse_expr   tk_is_cmp tks
-parse_and  tks = brp (\op l r -> BinOp op l r) parse_cmp    (\(x:_)->x==AND) tks
+build_binop op l r = BinOp op l r
+parse_term tks = brp build_binop parse_factor (\(x:s)->x==MUL || x==DIV) tks
+parse_expr tks = brp build_binop parse_term   (\(x:s)->x==ADD || x==SUB) tks
+parse_cmp  tks = brp build_binop parse_expr   tk_is_cmp tks
+parse_and  tks = brp build_binop parse_cmp    (\(x:s)->x==AND) tks
 parse_logic tks = 
-    brp (\op l r -> Logic op l r) parse_cmp (\(x:s)->x==OR) tks
+    brp (\op l r -> Logic op l r) parse_and (\(x:s)->x==OR) tks
 
-parse_list xs@(RP:rs) = Success (PhiList Skip Skip) xs
-parse_list tks = brp (\op l r -> PhiList l r)  parse_expr   (\(x:s)->x==COMMA) tks
+parse_list xs@(RP:rs) = Success (PhiList Skip Skip) rs
+parse_list tks = brp (\op l r -> PhiList l r)  parse_expr (\(x:s)->x==COMMA) tks
 
-parse_args (RP:rs) = Success (ArgList Skip Skip) rs
-parse_args tks = brp (\op l r -> ArgList l r)  parse_expr   (\(x:s)->x==COMMA) tks |=?> RP
-
+parse_args xs@(RP:rs) = Success (ArgList Skip Skip) rs
+parse_args tks = brp (\op l r -> ArgList l r)  parse_expr (\(x:s)->x==COMMA) tks
+                 |=?> RP
 
 parse_stmts tks =
     (brp
@@ -213,7 +214,6 @@ parse_def (x:s) =
 parse_direct tks = parse_atom tks |-> (\p rs -> Success (Direct p) rs)
 parse_eval tks = parse_expr tks |-> (\p rs -> Success (ExprEval p) rs)
 
-parse_stmt [] = Success END []
 parse_stmt (LB:rs) = parse_stmts rs
 parse_stmt (IF:rs) = parse_if rs
 parse_stmt (FOR:rs) = parse_for rs
