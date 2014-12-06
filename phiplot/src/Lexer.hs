@@ -79,7 +79,12 @@ skipComment (curr:remains) =
 lexme :: String -> [Token]
 lexme [] = []
 lexme ('/':'/':remains) = lexme.skipComment $ remains
-lexme ('*':'*':remains) = POWER : lexme remains
+lexme ('-':'-':remains) = lexme.skipComment $ remains
+lexme ('*':'*':remains) = POWER:lexme remains
+lexme ('<':'=':remains) = Structure.LE:lexme remains
+lexme ('>':'=':remains) = Structure.GE:lexme remains
+lexme ('=':'=':remains) = Structure.EQ:lexme remains
+lexme ('!':'=':remains) = Structure.NE:lexme remains
 lexme src@(curr:remains)
     | isSpace curr = lexme remains
     | isDigit curr = 
