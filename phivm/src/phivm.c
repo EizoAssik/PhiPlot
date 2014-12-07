@@ -109,7 +109,7 @@ static fnptr OPCODE[] = {
     not,  draw, halt, 
     store, load,
     set_rot, set_scale, set_org, set_color, 
-    phi_sin, phi_cos, phi_tan, phi_ln, phi_exp
+    phi_sin, phi_cos, phi_tan, phi_ln, phi_exp,
 #if (defined(PHIVM_DEBUG_CPU))
     debug,
 #endif
