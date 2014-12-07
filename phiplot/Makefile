@@ -16,5 +16,7 @@ parser: Structure.hs Lexer.hs Parser.hs test/TParser.hs test/TCommon.hs
 lexer: Structure.hs Lexer.hs test/TLexer.hs test/TCommon.hs
 	$(GHC) -o $@ -L$(LIBGMP) $^ 
 
+.PHONY:
+
 clean:
-	rm -f src/*.hi src/*.o src/*~ lexer
+	-rm -f *~ src/*.hi src/*.o src/*~ lexer parser compiler phicc
