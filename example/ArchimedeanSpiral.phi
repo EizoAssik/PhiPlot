@@ -1,0 +1,6 @@
+for t from 0 to 8*PI step 0.0001 {
+    r = 10 * (1 + t);
+    x = r * cos(t);
+    y = r * sin(t);
+    draw(x, y);
+}
