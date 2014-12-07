@@ -43,6 +43,24 @@ void load() {
     pushv(MEM[addr]);
 }
 
+static void set_rot() {
+    f64 rot = popv();
+    cos_rot = cos(rot);
+    sin_rot = sin(rot);
+}
+
+static void set_org() {
+    org_y = popv();
+    org_x = popv();
+}
+
+static void set_scale() {
+    scale_y = popv();
+    scale_x = popv();
+}
+
+static void set_color() {}
+
 static f64 swp;
 void swap() { swp = DS[DTOP]; DS[DTOP] = DS[DTOP-1]; DS[DTOP-1] = swp; }
 
@@ -84,6 +102,7 @@ static fnptr OPCODE[] = {
     jz,   lt,   eq,   gt,
     not,  draw, halt, 
     store, load,
+    set_rot, set_scale, set_org, set_color, 
     phi_sin, phi_cos, phi_tan,
 #if (defined(PHIVM_DEBUG_CPU))
     debug,
