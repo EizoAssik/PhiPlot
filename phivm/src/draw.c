@@ -5,11 +5,19 @@
 #include "phistack.h"
 #include "bmpio.h"
 
-// static byte * pixels = (byte*) calloc(800, 800);
-static byte pixels[800*800];
+#if (!defined(IMAGE_SIZE))
+#define IMAGE_SIZE 800
+#endif
+
+static byte * pixels = NULL;
+
 
 f64 sin_rot, cos_rot=1, scale_x=1, scale_y=1, org_x, org_y;
-ui64 color;
+byte color_r=0xFF, color_g=0xFF, color_b=0xFF;
+
+void __attribute__((constructor)) init_pixels() {
+    pixels = (byte*) calloc(IMAGE_SIZE, IMAGE_SIZE * 3);
+}
 
 void draw() {
     f64 x, y, raw_x;
@@ -28,7 +36,11 @@ void draw() {
     y += org_y;
     xi = ((ui64) (x+400)) % 800;
     yi = ((ui64) (y+400)) % 800;
-    pixels[800*yi + xi] = 0xFF;
+    ui64 addr = xi + IMAGE_SIZE * yi;
+    addr *= 3;
+    pixels[addr]     = color_b;
+    pixels[addr + 1] = color_g;
+    pixels[addr + 2] = color_r;
 }
 
 void dump_bmp() {

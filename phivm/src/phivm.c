@@ -59,7 +59,11 @@ static void set_scale() {
     scale_x = popv();
 }
 
-static void set_color() {}
+static void set_color() {
+    color_b = (byte) popv();
+    color_g = (byte) popv();
+    color_r = (byte) popv();
+}
 
 static f64 swp;
 void swap() { swp = DS[DTOP]; DS[DTOP] = DS[DTOP-1]; DS[DTOP-1] = swp; }
@@ -72,9 +76,11 @@ REGBINOP(eq, ==)
 REGBINOP(lt, <)
 REGBINOP(gt, >)
 
+REGFUNC(phi_ln,  log)
 REGFUNC(phi_sin, sin)
 REGFUNC(phi_cos, cos)
 REGFUNC(phi_tan, tan)
+REGFUNC(phi_exp, exp)
 
 void halt() {
 #if (defined(PHIVM_DEBUG_CPU))
@@ -103,7 +109,7 @@ static fnptr OPCODE[] = {
     not,  draw, halt, 
     store, load,
     set_rot, set_scale, set_org, set_color, 
-    phi_sin, phi_cos, phi_tan,
+    phi_sin, phi_cos, phi_tan, phi_ln, phi_exp
 #if (defined(PHIVM_DEBUG_CPU))
     debug,
 #endif

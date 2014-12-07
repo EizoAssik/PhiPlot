@@ -88,51 +88,30 @@ int WriteInofHeader(FILE *source,BMP_InfoHeader *target) {
 }
 
 void dump(byte * pixels, FILE *target) {
-	void *NewHole;
-	//临时数据
-	byte ColorPad,ColorPad_ZERO=0;
-	//行列跳转
-	ui32 delta;
-	ui32 RowSize;
 	//文件头数据
-	ui32 xLimit = 800, yLimit = 800, XPixelPerMeter = 4096, YPixelPerMeter = 4096;
-	ui32 FileSize       = 800 * 800 + 1078;
-	ui32 RFileSize       = 800 * 800;
+	ui32 xLimit = 800, yLimit = 800, XPixelPerMeter = 0, YPixelPerMeter = 0;
+	ui32 FileSize       = 800 * 800 * 3 + 56;
+	ui32 RFileSize      = 800 * 800 * 3;
     ui32 InfoHeaderSize = 40;
-	ui32 InfoCompression=0,NewOffBits=1078;
-	ui16 NewBitCounts=8,FileHeadBM=0x4d42,Reserved=0,NewFilePlanes=1;
-
-	//计算
-	RowSize  = (xLimit*8 +31)/32*4;
-	delta    = RowSize-xLimit;
-	NewHole  = malloc(delta);
-	memset(NewHole, 0, delta);
+	ui32 InfoCompression= 0, OffBits=54;
+	ui16 BitCounts=24, FileHeadBM=0x4D42, Reserved=0, FilePlanes=1;
 	//写入新文件头-16项,54字节
 	fwrite(&FileHeadBM,2,1,target);
 	fwrite(&FileSize,4,1,target);
 	fwrite(&Reserved,2,1,target);
 	fwrite(&Reserved,2,1,target);
-	fwrite(&NewOffBits,4,1,target);
+	fwrite(&OffBits,4,1,target);
 	fwrite(&InfoHeaderSize,4,1,target);
 	fwrite(&xLimit,4,1,target);
 	fwrite(&yLimit,4,1,target);
-	fwrite(&NewFilePlanes,2,1,target);
-	fwrite(&NewBitCounts,2,1,target);
+	fwrite(&FilePlanes,2,1,target);
+	fwrite(&BitCounts,2,1,target);
 	fwrite(&InfoCompression,4,1,target);
 	fwrite(&RFileSize,4,1,target);
 	fwrite(&XPixelPerMeter,4,1,target);
 	fwrite(&YPixelPerMeter,4,1,target);
 	fwrite(&InfoCompression,4,1,target);//写最后64位0
 	fwrite(&InfoCompression,4,1,target);//写最后64位0
-	// 写入256级灰度调色板
-	for(int i=0; i<256; ++i)
-	{
-		ColorPad=(byte)i;
-		fwrite(&ColorPad,1,1,target);
-		fwrite(&ColorPad,1,1,target);
-		fwrite(&ColorPad,1,1,target);
-		fwrite(&ColorPad_ZERO,1,1,target);
-	}
 	//生成文件内容
-    fwrite(pixels, 800*800, 1, target);
+    fwrite(pixels, RFileSize, 1, target);
 }
