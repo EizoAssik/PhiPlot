@@ -1,8 +1,7 @@
-x is 3;
-y is 4;
-xy is (4, 3);
-rot is PI/4;
-scale is (2, 3);
-origin is (200, 200);
+x = 3;
+y = 4;
+ROT = PI/4;
+SCALE = (200, 300);
+ORIGIN = (200, -200);
 
 for t from 0 to PI*20000 step PI/600 draw (sin(t)+x, cos(t)+y);
