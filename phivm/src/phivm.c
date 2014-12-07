@@ -27,8 +27,8 @@ void and()  { DS[DTOP-1] *= DS[DTOP]; DTOP--; }
 void or()   { DS[DTOP-1] += DS[DTOP]; DTOP--; }
 void not()  { DS[DTOP] = (DS[DTOP]==0); }
 void jmp()  { PC = PM[PC]; }
-void jp()   { if(DS[DTOP]>0)  { PC = PM[PC]; } else { PC++; } }
-void jz()   { if(DS[DTOP]==0) { PC = PM[PC]; } else { PC++; } }
+void jp()   { if(DS[DTOP]>0)  { PC = PM[PC]; } else { PC++; } pop(); }
+void jz()   { if(DS[DTOP]==0) { PC = PM[PC]; } else { PC++; } pop(); }
 
 void ret()   { PC = RS[RTOP--]; }
 void call()  { RS[++RTOP] = PC + 1; PC = PM[PC]; }
