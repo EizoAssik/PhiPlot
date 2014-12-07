@@ -1,26 +1,22 @@
-#include <stdio.h>
 #include <math.h>
 #include "common.h"
 #include "phivm.h"
+#include "phistack.h"
+#include "draw.h"
 
-#define DS_SIZE  4096
 #define RS_SIZE  4096
 #define PM_SIZE  4096
 #define MEM_SIZE 4096
 
 typedef void (*fnptr)();
 
-static f64  DS [DS_SIZE];
 static ui64 RS [RS_SIZE];
 static ui64 PM [PM_SIZE];
 static f64  MEM[MEM_SIZE];
 
-static ui64 DTOP = 0;
+ui64 DTOP = 0;
 static ui64 RTOP = 0;
 static ui64 PC   = 0;
-
-f64  popv() { return DS[DTOP--]; }
-void pushv(f64 v) { DS[++DTOP] = v; }
 
 void nop()  { return; }
 void pop()  { DTOP--; }
@@ -62,18 +58,15 @@ REGFUNC(phi_sin, sin)
 REGFUNC(phi_cos, cos)
 REGFUNC(phi_tan, tan)
 
-void draw() {
-    f64 x, y;
-    y = popv();
-    x = popv();
-    phi_log("(%lf, %lf)\n", x, y);
-}
-
 void halt() {
+#if (defined(PHIVM_DEBUG_CPU))
     phi_log("Halt.\n");
+#endif
+    dump_bmp();
     phi_exit(0);
 }
 
+#if (defined(PHIVM_DEBUG_CPU))
 void debug() {
     ui64 i = 1;
     while(i<=DTOP) {
@@ -81,6 +74,7 @@ void debug() {
         i += 1;
     }
 }
+#endif
 
 static fnptr OPCODE[] = {
     nop,  pop,  push, swap,
@@ -91,7 +85,9 @@ static fnptr OPCODE[] = {
     not,  draw, halt, 
     store, load,
     phi_sin, phi_cos, phi_tan,
+#if (defined(PHIVM_DEBUG_CPU))
     debug,
+#endif
 };
 
 void mainloop() {
