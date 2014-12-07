@@ -33,9 +33,13 @@ keys = [
     ("HALT", 0x16),
     ("STORE",0x17),
     ("LOAD", 0x18),
-    ("SIN",  0x19),
-    ("COS",  0x1A),
-    ("TAN",  0x1B) ] :: [(String, Word64)]
+    ("XROT", 0x19),
+    ("XSCL", 0X1A),
+    ("XORG", 0X1B),
+    ("XCLR", 0X1C),
+    ("SIN",  0X1D),
+    ("COS",  0x1E),
+    ("TAN",  0x1F) ] :: [(String, Word64)]
 
 word64ToWord8 :: Word64 -> [Word8]
 word64ToWord8 raw = 

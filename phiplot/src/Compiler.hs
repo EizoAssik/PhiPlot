@@ -21,11 +21,19 @@ list_expand ls =
 
 param_expand pl = map (\x -> let Elem (Ref ref) = x in ref) $ list_expand pl
 
-builtins = ["draw", "sin", "cos", "tan"]
+builtins = [
+        ("draw",   "DRAW"),
+        ("sin",    "SIN"),
+        ("cos",    "COS"),
+        ("tan",    "TAN"),
+        ("ROT",    "XROT"),
+        ("SCALE",  "XSCL"),
+        ("COLOR",  "XCLR"),
+        ("ORIGIN", "XORG")]
 compile_fn (Ref fn) = 
-    if elem fn builtins
-        then [map toUpper fn]
-        else ["CALL", '@':fn]
+     case lookup fn builtins of 
+         Just fn -> [fn]
+         Nothing -> ["CALL", '@':fn]
 
 compile_ref (Ref val)   = ["PUSH", '&':val]
 compile_atom (Not expr) = (compile_expr expr) ++ ["NOT"]
@@ -61,8 +69,10 @@ compile_stmt (Direct atom) = compile_atom atom
 compile_stmt (Return expr) = (compile_expr expr) ++ ["RET"]
 compile_stmt END = ["HALT"]
 compile_stmt NOP = ["NOP"]
-compile_stmt (Set ref expr) =
-    (compile_ref ref) ++ (compile_expr expr) ++ ["STORE"]
+compile_stmt (Set ref@(Ref fn) expr) =
+    case lookup fn builtins of
+        Just x  -> (compile_expr expr) ++ [x]
+        Nothing -> (compile_ref ref) ++ (compile_expr expr) ++ ["STORE"]
 compile_stmt (Block l r) =
     (compile_stmt l) ++ (compile_stmt r)
 compile_stmt (If cond succ fail) =
