@@ -46,6 +46,6 @@ void draw() {
 
 void dump_bmp() {
     FILE * target = fopen("./t.bmp", "wb");
-    dump(pixels, target);
+    dump(pixels, target, IMAGE_SIZE, IMAGE_SIZE);
     fclose(target);
 }
