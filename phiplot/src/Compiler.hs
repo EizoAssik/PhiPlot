@@ -45,7 +45,6 @@ compile_atom (Funcall fn args) =
     (compile_expr args) ++ (compile_fn fn)
 compile_atom (Negative expr) = (compile_expr expr) ++ ["NEG"]
 compile_atom Void = []
-
 compile_expr Skip = ["NOP"]
 compile_expr (Elem atom) = compile_atom atom
 compile_expr (BinOp tk l r) = 

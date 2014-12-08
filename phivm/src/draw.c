@@ -19,9 +19,10 @@ void __attribute__((constructor)) init_pixels() {
     pixels = (byte*) calloc(IMAGE_SIZE, IMAGE_SIZE * 3);
 }
 
+static  f64 x, y, raw_x;
+static  ui64 xi, yi;
+
 void draw() {
-    f64 x, y, raw_x;
-    ui64 xi, yi;
     y = popv();
     x = popv();
 #if (defined(PHIVM_DEBUG_DRAW))

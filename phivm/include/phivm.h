@@ -3,22 +3,19 @@
 
 #define REGBINOP(name, op) \
     void name () { \
-        f64 r = popv(); \
-        f64 l = popv(); \
-        pushv(l op r); \
+        DTOP -= 1; \
+        DS[DTOP] = DS[DTOP] op DS[DTOP+1]; \
     }
 
 #define REGBINFUNC(name, func) \
     void name () { \
-        f64 r = popv(); \
-        f64 l = popv(); \
-        pushv( func ( l, r) ); \
+        DTOP -= 1; \
+        DS[DTOP] = func ( DS[DTOP], DS[DTOP+1] ); \
     }
 
 #define REGFUNC(name, func) \
     void name () { \
-        f64 l = popv(); \
-        pushv( func ( l ) ); \
+        DS[DTOP] = func (DS[DTOP]); \
     }
     
 #endif
