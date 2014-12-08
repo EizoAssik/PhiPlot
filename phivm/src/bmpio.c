@@ -5,113 +5,59 @@
 #include "bmpio.h"
 
 BMP_FileHeader * new_BMP_FileHeader() {
-    return (BMP_FileHeader *) calloc(1, sizeof(BMP_FileHeader));
+    BMP_FileHeader * header = (BMP_FileHeader*) calloc(1, sizeof(BMP_FileHeader));
+    header->FileType = 0x4D42;
+    header->FileOffBits = 54;
+    return header;
 }
 
 BMP_InfoHeader * new_BMP_InfoHeader() {
-    return (BMP_InfoHeader *) calloc(1, sizeof(BMP_InfoHeader));
+    BMP_InfoHeader * header = (BMP_InfoHeader*) calloc(1, sizeof(BMP_InfoHeader));
+    header->InfoSize = 40;
+    header->FilePlanes = 1;
+    header->FileBitCount = 24;
+    return header;
 }
 
-int ReadFileHeader(FILE *source,BMP_FileHeader *target) {
-	int back=0;
-	back+=fread(&target->FileType,2,1,source);
-	back+=fread(&target->FileSize,4,1,source);
-	back+=fread(&target->BMP_Reserved_1,2,1,source);
-	back+=fread(&target->BMP_Reserved_2,2,1,source);
-	back+=fread(&target->FileOffBits,4,1,source);
-	return back==5;
+void WriteFileHeader(FILE *source, BMP_FileHeader * target) {
+    fwrite(&target->FileType,2,1,source);
+    fwrite(&target->FileSize,4,1,source);
+    fwrite(&target->BMP_Reserved_1,2,1,source);
+    fwrite(&target->BMP_Reserved_2,2,1,source);
+    fwrite(&target->FileOffBits,4,1,source);
 }
 
-int ReadInfoHeader(FILE *source,BMP_InfoHeader *target) {
-	int back=0;
-	back+=fread(&target->InfoSize,4,1,source);
-	back+=fread(&target->FileWidth,4,1,source);
-	back+=fread(&target->FileHeight,4,1,source);
-	back+=fread(&target->FilePlanes,2,1,source);
-	back+=fread(&target->FileBitCount,2,1,source);
-	back+=fread(&target->FileCompression,4,1,source);
-	back+=fread(&target->ImageSize,4,1,source);
-	back+=fread(&target->XPixelPerMeter,4,1,source);
-	back+=fread(&target->YPixelPerMeter,4,1,source);
-	back+=fread(&target->ColorUsed,4,1,source);
-	back+=fread(&target->ImportantColor,4,1,source);
-	return back==11;
+void WriteInfoHeader(FILE *source, BMP_InfoHeader * target) {
+    fwrite(&target->InfoSize,4,1,source);
+    fwrite(&target->FileWidth,4,1,source);
+    fwrite(&target->FileHeight,4,1,source);
+    fwrite(&target->FilePlanes,2,1,source);
+    fwrite(&target->FileBitCount,2,1,source);
+    fwrite(&target->FileCompression,4,1,source);
+    fwrite(&target->ImageSize,4,1,source);
+    fwrite(&target->XPixelPerMeter,4,1,source);
+    fwrite(&target->YPixelPerMeter,4,1,source);
+    fwrite(&target->ColorUsed,4,1,source);
+    fwrite(&target->ImportantColor,4,1,source);
 }
 
-void PrintFileHeader(BMP_FileHeader *target) {
-	printf("====BMP File Header====\n");
-	printf("FileType:%c%c\n",target->FileType%0x100,target->FileType/0x100);
-	printf("FileSize:%u\n",target->FileSize);
-	printf("Reserved:%x,%x\n", target->BMP_Reserved_1,target->BMP_Reserved_2);
-	printf("Bits Off:%u\n\n",target->FileOffBits);
-}
-
-void PrintInfoHeader(BMP_InfoHeader *target) {
-	printf("====BMP Info Header====\n");
-	printf("InfoSize:%u\n",target->InfoSize);
-	printf("FileWidth:%u\n",target->FileWidth);
-	printf("FileHeight:%u\n",target->FileHeight);
-	printf("FilePlanes:%u\n",target->FilePlanes);
-	printf("FileBitCount:%u\n",target->FileBitCount);
-	printf("Compression:%u\n",target->FileCompression);
-	printf("ImageSize:%u\n",target->ImageSize);
-	printf("XPixelPerMeter:%u\n",target->XPixelPerMeter);
-	printf("YPixelPerMeter:%u\n",target->YPixelPerMeter);
-	printf("UsedColor:%u\n",target->ColorUsed);
-	printf("ImportantColor:%u\n\n",target->ImportantColor);
-}
-
-int WriteFileHeader(FILE *source,BMP_FileHeader *target) {
-	int back = 0;
-	back += fwrite(&target->FileType,2,1,source);
-	back += fwrite(&target->FileSize,4,1,source);
-	back += fwrite(&target->BMP_Reserved_1,2,1,source);
-	back += fwrite(&target->BMP_Reserved_2,2,1,source);
-	back += fwrite(&target->FileOffBits,4,1,source);
-	return back == 5;
-}
-
-int WriteInofHeader(FILE *source,BMP_InfoHeader *target) {
-	int back=0;
-	back += fwrite(&target->InfoSize,4,1,source);
-	back += fwrite(&target->FileWidth,4,1,source);
-	back += fwrite(&target->FileHeight,4,1,source);
-	back += fwrite(&target->FilePlanes,2,1,source);
-	back += fwrite(&target->FileBitCount,2,1,source);
-	back += fwrite(&target->FileCompression,4,1,source);
-	back += fwrite(&target->ImageSize,4,1,source);
-	back += fwrite(&target->XPixelPerMeter,4,1,source);
-	back += fwrite(&target->YPixelPerMeter,4,1,source);
-	back += fwrite(&target->ColorUsed,4,1,source);
-	back += fwrite(&target->ImportantColor,4,1,source);
-	return back == 11;
-}
-
-void dump(byte * pixels, FILE *target) {
-	//文件头数据
-	ui32 xLimit = 800, yLimit = 800, XPixelPerMeter = 0, YPixelPerMeter = 0;
-	ui32 FileSize       = 800 * 800 * 3 + 56;
-	ui32 RFileSize      = 800 * 800 * 3;
-    ui32 InfoHeaderSize = 40;
-	ui32 InfoCompression= 0, OffBits=54;
-	ui16 BitCounts=24, FileHeadBM=0x4D42, Reserved=0, FilePlanes=1;
-	//写入新文件头-16项,54字节
-	fwrite(&FileHeadBM,2,1,target);
-	fwrite(&FileSize,4,1,target);
-	fwrite(&Reserved,2,1,target);
-	fwrite(&Reserved,2,1,target);
-	fwrite(&OffBits,4,1,target);
-	fwrite(&InfoHeaderSize,4,1,target);
-	fwrite(&xLimit,4,1,target);
-	fwrite(&yLimit,4,1,target);
-	fwrite(&FilePlanes,2,1,target);
-	fwrite(&BitCounts,2,1,target);
-	fwrite(&InfoCompression,4,1,target);
-	fwrite(&RFileSize,4,1,target);
-	fwrite(&XPixelPerMeter,4,1,target);
-	fwrite(&YPixelPerMeter,4,1,target);
-	fwrite(&InfoCompression,4,1,target);//写最后64位0
-	fwrite(&InfoCompression,4,1,target);//写最后64位0
-	//生成文件内容
-    fwrite(pixels, RFileSize, 1, target);
+void dump(byte * pixels, FILE *target, ui32 width, ui32 height) {
+    size_t image_size = 24 * width * height;
+    BMP_FileHeader * file_header = new_BMP_FileHeader();
+    BMP_InfoHeader * info_header = new_BMP_InfoHeader();
+    file_header->FileSize   = 54 + image_size;
+    info_header->ImageSize  = image_size;
+    info_header->FileWidth  = width;
+    info_header->FileHeight = height;
+    if(sizeof(BMP_FileHeader) == 14) {
+        fwrite(file_header, 14, 1, target);
+    } else {
+        WriteFileHeader(target, file_header);
+    }
+    if(sizeof(BMP_InfoHeader) == 40) {
+        fwrite(info_header, 40, 1, target);
+    } else {
+        WriteInfoHeader(target, info_header);
+    }
+    fwrite(pixels, image_size, 1, target);
 }

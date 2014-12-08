@@ -29,16 +29,12 @@ typedef struct struct_RGBColor {
 	byte Alpha;
 } BMPColor;
 
-void dump(byte * pixels, FILE * target);
+void dump(byte * pixels, FILE * target, ui32 x, ui32 y);
 
 BMP_FileHeader * new_BMP_FileHeader();
 BMP_InfoHeader * new_BMP_InfoHeader();
-int ReadFileHeader(FILE *source,BMP_FileHeader *target);
-int ReadInfoHeader(FILE *source,BMP_InfoHeader *target);
-void PrintFileHeader(BMP_FileHeader *target);
-void PrintInfoHeader(BMP_InfoHeader *target);
-int WriteFileHeader(FILE *source,BMP_FileHeader *target);
-int WriteInofHeader(FILE *source,BMP_InfoHeader *target);
+void WriteFileHeader(FILE *source,BMP_FileHeader *target);
+void WriteInofHeader(FILE *source,BMP_InfoHeader *target);
 
 // 1-2：  图像文件头。0x4d42=’BM’，表示是Windows支持的BMP格式。(注意：查ascii表B 0x42,M0x4d,bfType 为两个字节，B为low字节，M为high字节所以bfType=0x4D42，而不是0x424D，但注意)
 // 3-6：  整个文件大小。4690 0000，为00009046h=36934。
