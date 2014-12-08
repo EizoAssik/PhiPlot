@@ -39,8 +39,7 @@ void store() {
 }
 
 void load() {
-    ui64 addr = (ui64) popv();
-    pushv(MEM[addr]);
+    DS[DTOP] = MEM[(ui64)DS[DTOP]];
 }
 
 static void set_rot() {
