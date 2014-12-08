@@ -6,7 +6,7 @@
 #include "bmpio.h"
 
 #if (!defined(IMAGE_SIZE))
-#define IMAGE_SIZE 800
+#define IMAGE_SIZE 1600
 #endif
 
 static byte * pixels = NULL;
@@ -35,8 +35,8 @@ void draw() {
     y  = cos_rot * y - raw_x * sin_rot;
     x += org_x;
     y += org_y;
-    xi = ((ui64) (x+400)) % 800;
-    yi = ((ui64) (y+400)) % 800;
+    xi = ((ui64) (x+(IMAGE_SIZE/2))) % IMAGE_SIZE;
+    yi = ((ui64) (y+(IMAGE_SIZE/2))) % IMAGE_SIZE;
     ui64 addr = xi + IMAGE_SIZE * yi;
     addr *= 3;
     pixels[addr]     = color_b;
