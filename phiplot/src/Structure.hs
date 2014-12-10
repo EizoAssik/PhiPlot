@@ -3,7 +3,8 @@ module Structure ( Token(..),
                    Expr(..),
                    Stmt(..),
                    ParseResult(..),
-                   ParseFlow(..) ) where
+                   ParseFlow(..),
+                   PhiAST(..) ) where
 
 import Data.Char hiding ( format )
 
@@ -95,3 +96,15 @@ instance ParseFlow ParseResult where
 
     wrap m a = case m of
                  Error x s i  -> Error x s (i ++ "\n\t\t>> " ++ a)
+
+data PhiAST = COND              [PhiAST]
+            | LOOP              [PhiAST]
+            | ASTs              [PhiAST]
+            | CALL   String     [PhiAST]
+            | DEFINE String Int [PhiAST]
+            | SOP  Token PhiAST
+            | OP   Token PhiAST  PhiAST
+            | REF  String
+            | NUM  Float
+            deriving (Show, Eq)
+

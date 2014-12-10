@@ -104,7 +104,7 @@ parse_and  tks = brp build_binop parse_cmp    (\(x:s)->x==AND) tks
 parse_logic tks = 
     brp (\op l r -> Logic op l r) parse_and (\(x:s)->x==OR) tks
 
-parse_list xs@(RP:rs) = Success (PhiList Skip Skip) rs
+parse_list xs@(RP:rs) = Success (PhiList Skip Skip) xs
 parse_list tks = brp (\op l r -> PhiList l r)  parse_expr (\(x:s)->x==COMMA) tks
 
 parse_args xs@(RP:rs) = Success (ArgList Skip Skip) rs
@@ -236,3 +236,24 @@ inner_parse tk stmts =
         Error etk r err -> [Error etk r err]
 
 parse tk = inner_parse tk []
+
+-- 从Expr的层面构建AST
+
+build_ast (Elem (Ref ref)) = REF ref 
+build_ast (Elem (Imm imm)) = NUM imm
+build_ast (Elem (Funcall (Ref func) args)) =
+    case args of 
+        PhiList l r -> CALL func $ build_ast_list args
+        _ -> CALL func $ [build_ast args]
+build_ast (Elem (Subexpr expr)) = build_ast expr
+build_ast (Elem (Negative expr)) = SOP SUB $ build_ast expr
+build_ast (BinOp tk l r) =
+    OP tk (build_ast l) (build_ast r)
+build_ast_list (PhiList l r) =
+    case l of
+        PhiList l r -> build_ast_list l ++ [build_ast r]
+        _ -> build_ast l : build_ast r :[]
+build_ast_args (ArgList l r) =
+    case l of
+        ArgList l r -> build_ast_args l ++ [build_ast r]
+        _ -> build_ast l : build_ast r :[]
