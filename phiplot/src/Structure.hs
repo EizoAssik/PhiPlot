@@ -5,7 +5,8 @@ module Structure ( Token(..),
                    (~>>),
                    ParseResult(..),
                    ParseFlow(..),
-                   PhiAST(..) ) where
+                   PhiAST(..),
+                   PhiDAG(..) ) where
 
 import Data.Char hiding ( format )
 
@@ -117,7 +118,6 @@ instance ParseTree Stmt where
 data PhiAST = COND   PhiAST PhiAST PhiAST
             | LOOP   String PhiAST PhiAST PhiAST PhiAST
             | BLOCK             [PhiAST]
-            | SET    String      PhiAST
             | CALL   String     [PhiAST]
             | DEFINE String [String] PhiAST
             | SOP    Token  PhiAST
@@ -127,4 +127,8 @@ data PhiAST = COND   PhiAST PhiAST PhiAST
             | PASS
             deriving (Show, Eq)
 
+data PhiDAG = Node  PhiAST
+            | DAGS  Token PhiDAG
+            | DAGB  Token PhiDAG PhiDAG
+            deriving (Show, Eq)
 
