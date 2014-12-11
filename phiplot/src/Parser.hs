@@ -1,4 +1,4 @@
-module Parser ( parse, ParseResult(..) ) where
+module Parser ( parse, ParseResult(..), build_ast_stmt ) where
 
 import Structure
 
@@ -238,22 +238,34 @@ inner_parse tk stmts =
 parse tk = inner_parse tk []
 
 -- 从Expr的层面构建AST
-
-build_ast (Elem (Ref ref)) = REF ref 
-build_ast (Elem (Imm imm)) = NUM imm
-build_ast (Elem (Funcall (Ref func) args)) =
+build_ast_atom (Ref ref) = REF ref
+build_ast_atom (Imm num) = NUM num
+build_ast_atom (Funcall (Ref fn) args) =
     case args of 
-        PhiList l r -> CALL func $ build_ast_list args
-        _ -> CALL func $ [build_ast args]
-build_ast (Elem (Subexpr expr)) = build_ast expr
-build_ast (Elem (Negative expr)) = SOP SUB $ build_ast expr
-build_ast (BinOp tk l r) =
-    OP tk (build_ast l) (build_ast r)
-build_ast_list (PhiList l r) =
-    case l of
-        PhiList l r -> build_ast_list l ++ [build_ast r]
-        _ -> build_ast l : build_ast r :[]
-build_ast_args (ArgList l r) =
-    case l of
-        ArgList l r -> build_ast_args l ++ [build_ast r]
-        _ -> build_ast l : build_ast r :[]
+        PhiList l r -> CALL fn $ build_ast ~>> args
+        _ -> CALL fn $ build_ast ~>> args
+build_ast_atom (Subexpr expr) = build_ast expr
+build_ast_atom (Negative expr) = SOP SUB $ build_ast expr
+build_ast_atom (Not expr) = SOP NOT $ build_ast expr
+
+-- 构建其他嵌套式结构
+build_ast (Elem atom) = build_ast_atom atom
+build_ast (BinOp tk l r) = OP tk (build_ast l) (build_ast r)
+build_ast (Logic tk l r) = OP tk (build_ast l) (build_ast r)
+build_ast Skip = PASS
+
+
+build_ast_stmt (Direct atom)        = build_ast_atom atom
+build_ast_stmt (ExprEval expr)      = build_ast expr
+build_ast_stmt (Return  expr)       = SOP RETURN $ build_ast expr
+build_ast_stmt block@(Block _ _)    = BLOCK $ build_ast_stmt ~>> block
+build_ast_stmt (Set (Ref val) expr) = SET val $ build_ast expr
+build_ast_stmt (If cond e1 e2)      = COND (build_ast cond)
+                                           (build_ast_stmt e1)
+                                           (build_ast_stmt e2)
+build_ast_stmt (For (Ref val) from to step body) = 
+    LOOP val
+         (build_ast from)
+         (build_ast to)
+         (build_ast step)
+         (build_ast_stmt body)

@@ -2,6 +2,7 @@ module Structure ( Token(..),
                    Atom(..),
                    Expr(..),
                    Stmt(..),
+                   (~>>),
                    ParseResult(..),
                    ParseFlow(..),
                    PhiAST(..) ) where
@@ -97,14 +98,33 @@ instance ParseFlow ParseResult where
     wrap m a = case m of
                  Error x s i  -> Error x s (i ++ "\n\t\t>> " ++ a)
 
-data PhiAST = COND              [PhiAST]
-            | LOOP              [PhiAST]
-            | ASTs              [PhiAST]
+class ParseTree t where
+    (~>>) :: (t -> PhiAST) -> t -> [PhiAST]
+
+instance ParseTree Expr where
+    f ~>> expr = 
+        case expr of
+            PhiList l r -> (f ~>> l) ++ (f ~>> r) 
+            ArgList l r -> (f ~>> l) ++ (f ~>> r)
+            expr        -> [f expr]
+
+instance ParseTree Stmt where
+    f ~>> stmt = 
+        case stmt of
+            Block l r   -> (f ~>> l) ++ (f ~>> r)
+            stmt        -> [f stmt]
+
+data PhiAST = COND   PhiAST PhiAST PhiAST
+            | LOOP   String PhiAST PhiAST PhiAST PhiAST
+            | BLOCK             [PhiAST]
+            | SET    String      PhiAST
             | CALL   String     [PhiAST]
             | DEFINE String Int [PhiAST]
-            | SOP  Token PhiAST
-            | OP   Token PhiAST  PhiAST
-            | REF  String
-            | NUM  Float
+            | SOP    Token  PhiAST
+            | OP     Token  PhiAST  PhiAST
+            | REF    String
+            | NUM    Float
+            | PASS
             deriving (Show, Eq)
+
 
