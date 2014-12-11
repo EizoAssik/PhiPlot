@@ -1,7 +1,6 @@
 module Compiler where
 
-import Structure
-import Data.Char ( toUpper )
+import Structure as ST
 
 dump_token tk = [show tk]
 
@@ -131,4 +130,14 @@ compile [] = []
 compile ((Success def@(Def _ _ _) _):xs) = (compile xs) ++ (compile_stmt def)
 compile ((Success stmt _):xs) = (compile_stmt stmt) ++ compile xs
 
+sym <~~ table = 
+    case lookup sym table of
+        Nothing -> let itemname = "t"++(show $ length table)
+                   in  (REF itemname, (sym, itemname):table)
+        Just n  -> (REF n, table)
 
+trituple (OP tk l r) table = 
+    let (ll, tl) = trituple l table
+        (rr, tr) = trituple r tl
+    in  (OP tk ll rr) <~~ tr
+trituple ast table = ast <~~ table    
