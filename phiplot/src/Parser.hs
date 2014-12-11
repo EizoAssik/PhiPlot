@@ -1,6 +1,6 @@
 module Parser ( parse, ParseResult(..), build_ast_stmt ) where
 
-import Structure
+import Structure as ST
 
 parse_atom (Real r:rs) = Success (Imm r) rs
 parse_atom (Name "PI":rs) = Success (Imm $ pi) rs
@@ -88,12 +88,12 @@ brp_constructor constructor ((lr, lop):(rr, rop):s) =
     in  brp_constructor constructor next
 -- BRP 结束                                       
 
-tk_is_cmp (Structure.EQ:_) = True 
-tk_is_cmp (Structure.NE:_) = True 
-tk_is_cmp (Structure.LT:_) = True 
-tk_is_cmp (Structure.GT:_) = True 
-tk_is_cmp (Structure.LE:_) = True 
-tk_is_cmp (Structure.GE:_) = True 
+tk_is_cmp (ST.EQ:_) = True 
+tk_is_cmp (ST.NE:_) = True 
+tk_is_cmp (ST.LT:_) = True 
+tk_is_cmp (ST.GT:_) = True 
+tk_is_cmp (ST.LE:_) = True 
+tk_is_cmp (ST.GE:_) = True 
 tk_is_cmp _ = False
 
 build_binop op l r = BinOp op l r
@@ -269,3 +269,5 @@ build_ast_stmt (For (Ref val) from to step body) =
          (build_ast to)
          (build_ast step)
          (build_ast_stmt body)
+build_ast_stmt (Def fn args body) = 
+    DEFINE (name fn) ((name . ST.elem) ~>> args) (build_ast_stmt body)
