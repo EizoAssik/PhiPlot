@@ -5,7 +5,8 @@ module Structure ( Token(..),
                    (~>>),
                    ParseResult(..),
                    ParseFlow(..),
-                   PhiAST(..) ) where
+                   PhiAST(..),
+                   PhiDAG(..) ) where
 
 import Data.Char hiding ( format )
 
@@ -24,13 +25,13 @@ data Token = Name     String
 data Atom = Not      Expr
           | Subexpr  Expr
           | Negative Expr
-          | Imm      Float
-          | Ref      String
+          | Imm      { value :: Float }
+          | Ref      { name  :: String }
           | Funcall  Atom Expr
           | Void
           deriving (Show, Eq)
 
-data Expr = Elem    Atom
+data Expr = Elem    { elem :: Atom }
           | PhiList Expr  Expr
           | ArgList Expr  Expr
           | BinOp   Token Expr Expr
@@ -99,7 +100,7 @@ instance ParseFlow ParseResult where
                  Error x s i  -> Error x s (i ++ "\n\t\t>> " ++ a)
 
 class ParseTree t where
-    (~>>) :: (t -> PhiAST) -> t -> [PhiAST]
+    (~>>) :: (t -> a) -> t -> [a]
 
 instance ParseTree Expr where
     f ~>> expr = 
@@ -117,9 +118,8 @@ instance ParseTree Stmt where
 data PhiAST = COND   PhiAST PhiAST PhiAST
             | LOOP   String PhiAST PhiAST PhiAST PhiAST
             | BLOCK             [PhiAST]
-            | SET    String      PhiAST
             | CALL   String     [PhiAST]
-            | DEFINE String Int [PhiAST]
+            | DEFINE String [String] PhiAST
             | SOP    Token  PhiAST
             | OP     Token  PhiAST  PhiAST
             | REF    String
@@ -127,4 +127,8 @@ data PhiAST = COND   PhiAST PhiAST PhiAST
             | PASS
             deriving (Show, Eq)
 
+data PhiDAG = Node  PhiAST
+            | DAGS  Token PhiDAG
+            | DAGB  Token PhiDAG PhiDAG
+            deriving (Show, Eq)
 

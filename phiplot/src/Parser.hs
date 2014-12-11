@@ -1,6 +1,6 @@
 module Parser ( parse, ParseResult(..), build_ast_stmt ) where
 
-import Structure
+import Structure as ST
 
 parse_atom (Real r:rs) = Success (Imm r) rs
 parse_atom (Name "PI":rs) = Success (Imm $ pi) rs
@@ -88,12 +88,12 @@ brp_constructor constructor ((lr, lop):(rr, rop):s) =
     in  brp_constructor constructor next
 -- BRP 结束                                       
 
-tk_is_cmp (Structure.EQ:_) = True 
-tk_is_cmp (Structure.NE:_) = True 
-tk_is_cmp (Structure.LT:_) = True 
-tk_is_cmp (Structure.GT:_) = True 
-tk_is_cmp (Structure.LE:_) = True 
-tk_is_cmp (Structure.GE:_) = True 
+tk_is_cmp (ST.EQ:_) = True 
+tk_is_cmp (ST.NE:_) = True 
+tk_is_cmp (ST.LT:_) = True 
+tk_is_cmp (ST.GT:_) = True 
+tk_is_cmp (ST.LE:_) = True 
+tk_is_cmp (ST.GE:_) = True 
 tk_is_cmp _ = False
 
 build_binop op l r = BinOp op l r
@@ -223,7 +223,7 @@ parse_stmt (DEF:rs) = parse_def rs
 parse_stmt tks@(Name _:LP:rs)        = parse_direct tks
 parse_stmt tks@(Name _:SEMICOLON:rs) = parse_direct tks
 parse_stmt tks@(Name _:[]) = parse_direct tks
-parse_stmt tks@(Name _:rs) = parse_set tks
+parse_stmt tks@(Name _:IS:rs) = parse_set tks
 parse_stmt tks@(RETURN:rs) = parse_expr rs |-> (\x s -> Success (Return x) s)
 parse_stmt (SEMICOLON:rs) = parse_stmt rs
 parse_stmt tks = parse_eval tks
@@ -259,7 +259,8 @@ build_ast_stmt (Direct atom)        = build_ast_atom atom
 build_ast_stmt (ExprEval expr)      = build_ast expr
 build_ast_stmt (Return  expr)       = SOP RETURN $ build_ast expr
 build_ast_stmt block@(Block _ _)    = BLOCK $ build_ast_stmt ~>> block
-build_ast_stmt (Set (Ref val) expr) = SET val $ build_ast expr
+build_ast_stmt (Set target expr)    =
+    OP IS (build_ast_atom target) (build_ast expr)
 build_ast_stmt (If cond e1 e2)      = COND (build_ast cond)
                                            (build_ast_stmt e1)
                                            (build_ast_stmt e2)
@@ -269,3 +270,5 @@ build_ast_stmt (For (Ref val) from to step body) =
          (build_ast to)
          (build_ast step)
          (build_ast_stmt body)
+build_ast_stmt (Def fn args body) = 
+    DEFINE (name fn) ((name . ST.elem) ~>> args) (build_ast_stmt body)
