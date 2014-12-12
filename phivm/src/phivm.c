@@ -1,6 +1,7 @@
 #include <math.h>
 #include "common.h"
 #include "phivm.h"
+#include "phimem.h"
 #include "phistack.h"
 #include "draw.h"
 
@@ -10,11 +11,13 @@
 
 typedef void (*fnptr)();
 
-static ui64 RS [RS_SIZE];
-static ui64 PM [PM_SIZE];
-static f64  MEM[MEM_SIZE];
+static ui64  RS [RS_SIZE];
+static ui64  PM [PM_SIZE];
+static f64 * MEM;
+static f64 * LOCAL[4096];
 
 ui64 DTOP = 0;
+static ui64 LOCALP = 0;
 static ui64 RTOP = 0;
 static ui64 PC   = 0;
 
@@ -30,8 +33,16 @@ void jmp()  { PC = PM[PC]; }
 void jp()   { if(DS[DTOP]>0)  { PC = PM[PC]; } else { PC++; } pop(); }
 void jz()   { if(DS[DTOP]==0) { PC = PM[PC]; } else { PC++; } pop(); }
 
-void ret()   { PC = RS[RTOP--]; }
-void call()  { RS[++RTOP] = PC + 1; PC = PM[PC]; }
+void ret()   {
+    PC = RS[RTOP--];
+    free_local(MEM);
+    MEM = LOCAL[--LOCALP];
+}
+void call()  {
+    RS[++RTOP] = PC + 1;
+    PC = PM[PC];
+    LOCAL[++LOCALP] = MEM = new_local(MEM);
+}
 void store() {
     f64 value = popv();
     ui64 addr = (ui64) popv();
@@ -119,7 +130,7 @@ void mainloop() {
     for(;;) {
         ins = PM[PC++];
         if (ins >= sizeof(OPCODE)/sizeof(void*)) {
-            phi_error("BAD OPCODE: 0x%lX\n", ins);
+            phi_error("BAD OPCODE: 0x%lX\n, PC=%ld", ins, PC-1);
             phi_exit(-1);
         } else {
             OPCODE[ins](); 
@@ -140,6 +151,7 @@ int main(int argc, const char *argv[]) {
     ui64 fs = filesize(hex);
     fread((void*) PM, 1, fs, hex);
     fclose(hex);
+    LOCAL[++LOCALP] = MEM = new_local(NULL);
     mainloop();
     return 0;
 }
