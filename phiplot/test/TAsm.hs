@@ -1,6 +1,7 @@
 module Main where
 
 import Assembler
+import Data.ByteString ( pack, writeFile )
 import System.Environment ( getArgs )
 
 main = do
