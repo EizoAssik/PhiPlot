@@ -223,7 +223,7 @@ parse_stmt (DEF:rs) = parse_def rs
 parse_stmt tks@(Name _:LP:rs)        = parse_direct tks
 parse_stmt tks@(Name _:SEMICOLON:rs) = parse_direct tks
 parse_stmt tks@(Name _:[]) = parse_direct tks
-parse_stmt tks@(Name _:rs) = parse_set tks
+parse_stmt tks@(Name _:IS:rs) = parse_set tks
 parse_stmt tks@(RETURN:rs) = parse_expr rs |-> (\x s -> Success (Return x) s)
 parse_stmt (SEMICOLON:rs) = parse_stmt rs
 parse_stmt tks = parse_eval tks
@@ -259,7 +259,8 @@ build_ast_stmt (Direct atom)        = build_ast_atom atom
 build_ast_stmt (ExprEval expr)      = build_ast expr
 build_ast_stmt (Return  expr)       = SOP RETURN $ build_ast expr
 build_ast_stmt block@(Block _ _)    = BLOCK $ build_ast_stmt ~>> block
-build_ast_stmt (Set (Ref val) expr) = SET val $ build_ast expr
+build_ast_stmt (Set target expr)    =
+    OP IS (build_ast_atom target) (build_ast expr)
 build_ast_stmt (If cond e1 e2)      = COND (build_ast cond)
                                            (build_ast_stmt e1)
                                            (build_ast_stmt e2)

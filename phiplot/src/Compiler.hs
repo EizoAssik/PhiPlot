@@ -138,5 +138,3 @@ replace_local_var (x:xs) params prefix =
 compile [] = []
 compile ((Success def@(Def _ _ _) _):xs) = (compile xs) ++ (compile_stmt def)
 compile ((Success stmt _):xs) = (compile_stmt stmt) ++ compile xs
-
-
