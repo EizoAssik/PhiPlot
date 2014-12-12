@@ -1,9 +1,17 @@
 module Compiler where
 
-import Structure
+import Structure as ST hiding ( elem )
 import Data.Char ( toUpper )
 
-dump_token tk = [show tk]
+dump_token tk =
+    case tk of
+        ST.LT -> ["LT"]
+        ST.LE -> ["GT", "NOT"]
+        ST.EQ -> ["EQ"]
+        ST.GE -> ["LT", "NOT"]
+        ST.GT -> ["GT"]
+        ST.NE -> ["EQ", "NOT"]
+        _ -> [show tk]
 
 list_length al = 
     case al of
@@ -55,12 +63,12 @@ compile_expr (PhiList car cdr) =
     (compile_expr car) ++ (compile_expr cdr)
 compile_expr (Logic tk l r) = 
     let opcode = case tk of
-                     Structure.LT -> ["LT"]
-                     Structure.LE -> ["GT", "NOT"]
-                     Structure.EQ -> ["EQ"]
-                     Structure.GE -> ["LT", "NOT"]
-                     Structure.GT -> ["GT"]
-                     Structure.NE -> ["EQ", "NOT"]
+                     ST.LT -> ["LT"]
+                     ST.LE -> ["GT", "NOT"]
+                     ST.EQ -> ["EQ"]
+                     ST.GE -> ["LT", "NOT"]
+                     ST.GT -> ["GT"]
+                     ST.NE -> ["EQ", "NOT"]
     in  (compile_expr l) ++ (compile_expr r) ++ opcode
 
 compile_stmt (ExprEval expr) = compile_expr expr
