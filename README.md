@@ -14,6 +14,7 @@ PhiPlot的目标特性如下：
 + 可选的IF语句支持
 + 可选的自定义变量支持
 + 可选的字节码编译器&虚拟机
++ LLVM based JIT (under developing)
 
 > **PhiPlot**的分析综合模块和字节码编译器仅在GHC 7.8.3 下测试通过。
 > **PhiPlot**的虚拟机可由完整实现C11标准的编译器编译，但不保证对Windows平台的兼容性。
