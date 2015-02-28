@@ -90,7 +90,7 @@ stmt = do
   return v
 
 block :: Parser [AST]
-block = many stmt
+block = braces $ many stmt
 
 astmt :: Parser AST
 astmt = aexpr >>= return . AExp
