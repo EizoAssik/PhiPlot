@@ -79,13 +79,15 @@ contents p = do
 
 -- Statements
 stmt :: Parser AST
-stmt =  try cond
+stmt = do
+  v <-  try cond
     <|> try for
     <|> try while
     <|> try assign
-    <|> try astmt
     <|> try bstmt
-
+    <|> try astmt
+  optional $ reservedOp ";"
+  return v
 
 block :: Parser [AST]
 block = many stmt
@@ -115,7 +117,7 @@ cond = do
   reserved "if"
   c <- parens $ bexpr
   t <- block
-  reserved "esle"
+  reserved "else"
   f <- block
   return $ If c t f
 
@@ -140,10 +142,7 @@ while = do
 -- The full parser
 
 toplevel :: Parser [AST]
-toplevel = many $ do
-  s <- try stmt <|> try defun
-  optional $ reservedOp ";"
-  return s
+toplevel = many $ try stmt <|> try defun
 
 parseAExpr :: String -> Either ParseError Expr
 parseAExpr s = parse (contents aexpr) "<stdin>" s
